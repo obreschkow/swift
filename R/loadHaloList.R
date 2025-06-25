@@ -1,13 +1,26 @@
-# routine loads bare halo structure:
+#' Load basic halo list
+#'
+#' @importFrom bit64 as.integer64
+#' @importFrom cooltools readhdf5 tick tock userattributes
+#' @import data.table
+#'
+#' @description Loads basic halo properties from an HDF5 file and constructs a `data.table` with key columns required for further analysis.
+#'
+#' @param filename Full path of the HDF5 halo file.
+#' @param verbose Logical flag to control whether progress and timing information should be printed in console.
+#'
+#' @details Creates a `data.table` of halo properties and assigns it to `swift$halos` via an active binding for convenient in-scope access using the variable `halos`.
+#'
+#' @return None. The loaded halo list is stored in `swift$halos`.
+#'
+#' @export
 
-library(cooltools)
-library(bit64)
-library(data.table)
+loadHaloList = function(filename, verbose=TRUE) {
 
-load.halo.list = function(filename) {
-  
-  tick('Load halo list from raw HDF5 file')
-  
+  if (verbose) cooltools::tick('Load halo list from raw HDF5 file')
+
+  bindHalos() # makes 'halos' a pointer to swift$halos
+
   # remove attributes and converts 64-bit integers to 32-bit integers if possible without loss
   simplify = function(x) {
     myattributes = names(cooltools::userattributes(x))
@@ -20,12 +33,7 @@ load.halo.list = function(filename) {
       return(x)
     }
   }
-  
-  # this function allows the code to use "halos" instead of "swift$halos" without making a copy
-  makeActiveBinding("halos", function(v) {
-    if (missing(v)) swift$halos else swift$halos <<- v
-  }, env = environment())
-  
+
   # Load basic HDF5 data
   subtree = list(InputHalos=list(HaloCatalogueIndex=NA),
                  SOAP=list(HostHaloIndex=NA, SubhaloRankByBoundMass=NA),
@@ -35,7 +43,7 @@ load.halo.list = function(filename) {
                                  HostHaloIndex=simplify(dat$SOAP$HostHaloIndex+1),
                                  SubhaloRankByBoundMass=simplify(dat$SOAP$SubhaloRankByBoundMass),
                                  HaloCatalogueIndex=simplify(dat$InputHalos$HaloCatalogueIndex))
-  
-  tock(sprintf('# halos = %d',dim(halos)[1]))
+
+  if (verbose) cooltools::tock(sprintf('# halos = %d',dim(halos)[1]))
 
 }

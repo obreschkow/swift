@@ -1,14 +1,28 @@
-library(rhdf5)
+#' Add halo properties
+#'
+#' @importFrom rhdf5 h5ls h5read
+#' @importFrom bit64 as.integer64
+#' @importFrom cooltools tick tock progress userattributes
+#' @importFrom stats setNames
+#'
+#' @description Reads additional halo properties from a SOAP HDF5 file and appends them to the existing halo table.
+#'
+#' @param filename Full path of the HDF5 halo file.
+#' @param subtree A structured list specifying the datasets to read from the HDF5 file.
+#' @param verbose Logical flag to control whether progress and timing information should be printed in console.
+#'
+#' @details This function updates `swift$halos` by appending new columns based on datasets specified in the `subtree`. The variable `halos` is bound via an active binding to refer directly to `swift$halos` within the function scope.
+#'
+#' @return None. Modifies `swift$halos` in place.
+#'
+#' @export
 
-add.halo.properties = function(filename, subtree) {
-  
-  tick('Add halo properties')
-  
-  # this function allows the code to use "halos" instead of "swift$halos" without making a copy
-  makeActiveBinding("halos", function(v) {
-    if (missing(v)) swift$halos else swift$halos <<- v
-  }, env = environment())
-  
+addHaloProperties = function(filename, subtree, verbose=TRUE) {
+
+  if (verbose) cooltools::tick('Add halo properties')
+
+  bindHalos() # makes 'halos' a pointer to swift$halos
+
   flatten_branches <- function(x, prefix = NULL) {
     results <- list()
     for (name in names(x)) {
@@ -19,14 +33,14 @@ add.halo.properties = function(filename, subtree) {
       } else {
         nested <- value
         for (n in rev(full_name)) {
-          nested <- setNames(list(nested), n)
+          nested <- stats::setNames(list(nested), n)
         }
         results[[length(results) + 1]] <- nested
       }
     }
     results
   }
-  
+
   get_branch_names <- function(x, prefix = NULL) {
     result <- character()
     for (name in names(x)) {
@@ -39,7 +53,7 @@ add.halo.properties = function(filename, subtree) {
     }
     result
   }
-  
+
   # remove attributes and converts 64-bit integers to 32-bit integers if possible without loss
   simplify = function(x) {
     myattributes = names(cooltools::userattributes(x))
@@ -52,34 +66,34 @@ add.halo.properties = function(filename, subtree) {
       return(x)
     }
   }
-  
+
   i = simplify(readhdf5(filename, subtree=list(InputHalos=list(HaloCatalogueIndex=NA)))[[1]][[1]])
   sel = match(halos$HaloCatalogueIndex, i)
   nhalos = length(i)
-  
+
   branches = flatten_branches(subtree)
   nbranches = length(branches)
-  
+
   info = h5ls(filename)
   info$full_path = file.path(info$group, info$name)
-  
+
   for (i in seq(nbranches)) {
-    
+
     progress(sprintf('%d/%d',i,nbranches))
-    
+
     # extract branch
     branch = branches[[i]]
-    
+
     # make new column name
     name = get_branch_names(branch)
     path = paste0("/", gsub("\\.", "/", name))
-    
+
     # Determine dimensionality
     row = which(info$full_path == path)
     if (length(row) != 1) stop("Dataset not found or not unique")
     dim_str = info$dim[row]
     dims = as.numeric(strsplit(dim_str, " x ")[[1]])
-    
+
     # Read accordingly
     if (is.null(dims) || length(dims)==1) {
       # 1D vector (no 'dim' attribute): use simple index
@@ -93,9 +107,9 @@ add.halo.properties = function(filename, subtree) {
     } else {
       stop("Unsupported data dimensionality.")
     }
-    
+
   }
-  
-  tock()
-  
+
+  if (verbose) cooltools::tock()
+
 }
