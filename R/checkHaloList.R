@@ -42,4 +42,6 @@ checkHaloList = function(verbose=TRUE) {
 
   if (verbose) cooltools::tock('Passed.')
 
+  invisible(NULL)
+
 }

@@ -25,6 +25,7 @@ filterHaloList = function(HaloCatalogueIndex, verbose=TRUE) {
 
   # determine indices of selected galaxies
   selection = match(HaloCatalogueIndex, halos$HaloCatalogueIndex)
+  if (any(is.na(selection))) stop("Some HaloCatalogueIndex values not found in swift$halos.")
 
   # ensure that all centrals of selected satellites are included, even if they wheren't directly selected, to avoid generating orphans
   selection = union(selection,halos$HostHaloIndex[selection])
@@ -50,6 +51,7 @@ filterHaloList = function(HaloCatalogueIndex, verbose=TRUE) {
     halos$NumberOfSubhalos[as.integer(names(tab))] = as.integer(tab)
   }
 
-  if (verbose) cooltools::tock(sprintf('# halos = %d',dim(halos)[1]))
+  if (verbose) cooltools::tock(sprintf('# halos = %d',nrow(halos)))
 
+  invisible(NULL)
 }

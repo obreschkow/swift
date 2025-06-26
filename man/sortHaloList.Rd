@@ -16,5 +16,5 @@ None. Modifies `swift$halos` in place.
 Sorts the halo list from most to least massive, ensuring that each central halo is followed by its associated satellite halos.
 }
 \details{
-The input halo table (`swift$halos`) is sorted so that more massive centrals appear earlier, followed by their satellites ordered by subhalo rank. The function also updates `HostHaloIndex` and computes `NumberOfSubhalos` for each central. The variable `halos` is locally bound via an active binding to refer to `swift$halos` directly.
+The input halo table (`swift$halos`) is sorted so that more massive centrals appear earlier, followed by their satellites ordered by subhalo rank (also from most to least massive). The function also updates `HostHaloIndex` and computes a new property `NumberOfSubhalos` for each central.
 }

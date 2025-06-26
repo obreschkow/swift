@@ -1,0 +1,110 @@
+---
+title: "Example Workflow with the swift Package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Example Workflow with the swift Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```r
+# Load the swift package
+library(swift)
+```
+
+This vignette demonstrates a typical workflow using the `swift` package. It shows how to load a halo catalogue, filter and sort halos, check the result, and add new halo properties.
+
+---
+
+## 1. Set the path to the HDF5 halo file
+
+The halo properties file is included with the package in the `inst/colibre/` folder.
+
+```r
+halo_file <- system.file("colibre", "halo_properties_0127.hdf5", package = "swift")
+setPath("halos", halo_file)
+```
+
+---
+
+## 2. Load the basic halo list
+
+This reads a minimal set of halo properties into `swift$halos`.
+
+```r
+loadHaloList()
+```
+
+---
+
+## 3. Filter halos by mass
+
+We'll keep only halos with a total mass greater than 100 (in the units of the file).
+
+```r
+id <- swift$halos$HaloCatalogueIndex[swift$halos$TotalMass > 1e2]
+filterHaloList(id)
+```
+
+---
+
+## 4. Sort halos
+
+Centrals are sorted by mass, with satellites following their associated centrals.
+
+```r
+sortHaloList()
+```
+
+---
+
+## 5. Check for consistency
+
+We verify the internal structure of the halo list.
+
+```r
+checkHaloList()
+```
+
+---
+
+## 6. Load additional halo properties
+
+In this example, we add the `HaloCentre` position and the stellar mass inside a 3 kpc exclusive sphere.
+
+```r
+loadHaloProperties(
+  subtree = list(
+    InputHalos = list(HaloCentre = NA),
+    ExclusiveSphere = list(`3kpc` = list(StellarMass = NA))
+  )
+)
+```
+
+---
+
+## 7. Add a custom property
+
+We demonstrate how to add a new synthetic property, e.g., a row index, to each halo.
+
+```r
+addHaloProperties(seq_len(nrow(swift$halos)), "my.property")
+```
+
+---
+
+## Summary
+
+You have now:
+- Loaded a halo catalogue
+- Filtered and sorted halos
+- Loaded additional properties
+- Added a custom property to the halo table
+
+Explore `swift$halos` to see the result:
+
+```r
+head(swift$halos)
+```
+
+For more information, see the documentation for the individual functions, e.g. `?loadHaloList`, `?addHaloProperties`, etc.

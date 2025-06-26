@@ -8,7 +8,7 @@ Authors@R:
              role = c("aut", "cre"),
              email = "danail.obreschkow@gmail.com",
              comment = c(ORCID = "0000-0002-1527-0762")))
-Description: Routines to handle astrophysical simulation data output by the SWIFT hydro-gravitational N-body simulation code, as well as value-added data generated with SOAP (Spherical Overdensity Aperture Processor).
+Description: Routines to handle astrophysical simulation data output by the hydro-gravitational N-body simulation code SWIFT (SPH With Inter-dependent Fine-grained Tasking), as well as value-added data generated with SOAP (Spherical Overdensity Aperture Processor).
 Imports:
     cooltools,
     bit64,
@@ -19,3 +19,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

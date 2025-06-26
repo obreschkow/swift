@@ -2,23 +2,22 @@
 % Please edit documentation in R/addHaloProperties.R
 \name{addHaloProperties}
 \alias{addHaloProperties}
-\title{Add halo properties}
+\title{Add new halo properties}
 \usage{
-addHaloProperties(filename, subtree, verbose = TRUE)
+addHaloProperties(x, names = NULL, HaloCatalogueIndex = NULL, verbose = FALSE)
 }
 \arguments{
-\item{filename}{Full path of the HDF5 halo file.}
+\item{x}{A vector, matrix, data.frame, or data.table to append as new columns to the data.table `swift$halos`.}
 
-\item{subtree}{A structured list specifying the datasets to read from the HDF5 file.}
+\item{names}{A character string or vector of strings specifying the name(s) of the new column(s). If not given, the column names of \code{x} are used.}
 
-\item{verbose}{Logical flag to control whether progress and timing information should be printed in console.}
+\item{HaloCatalogueIndex}{Optional vector specifying the rows in the halo table where the new properties should be written. If \code{NULL}, all rows are updated, and the order is the same as in \code{x}.}
+
+\item{verbose}{Logical flag to control whether progress and timing information should be printed in the console.}
 }
 \value{
 None. Modifies `swift$halos` in place.
 }
 \description{
-Reads additional halo properties from a SOAP HDF5 file and appends them to the existing halo table.
-}
-\details{
-This function updates `swift$halos` by appending new columns based on datasets specified in the `subtree`. The variable `halos` is bound via an active binding to refer directly to `swift$halos` within the function scope.
+Adds new halo properties to the halo table stored in `swift$halos`.
 }

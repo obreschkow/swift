@@ -3,17 +3,16 @@
 \docType{data}
 \name{swift}
 \alias{swift}
-\title{Package environment}
+\title{The `swift` environment}
 \format{
-An object of class \code{environment} of length 0.
+An object of class \code{environment} of length 3.
 }
 \usage{
 swift
 }
 \description{
-Environment used to store currently loaded simulation data.
-}
-\author{
-Danail Obreschkow
+An environment that stores loaded simulation data, such as `halos`, `particles`, and file `paths`.
+The entries in this environment are exposed to the user as read-only bindings.
+Internally, values are stored in a hidden environment and modified via package functions.
 }
 \keyword{datasets}
