@@ -13,8 +13,11 @@ sortHaloList(verbose = TRUE)
 None. Modifies `swift$halos` in place.
 }
 \description{
-Sorts the halo list from most to least massive, ensuring that each central halo is followed by its associated satellite halos.
+Sorts the subhalo list from most to least massive, ensuring that each central subhalo is directly followed by its associated satellite subhalos.
 }
 \details{
 The input halo table (`swift$halos`) is sorted so that more massive centrals appear earlier, followed by their satellites ordered by subhalo rank (also from most to least massive). The function also updates `HostHaloIndex` and computes a new property `NumberOfSubhalos` for each central.
+}
+\seealso{
+\link{checkHaloList}
 }

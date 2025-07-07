@@ -13,11 +13,11 @@
 #'
 #' @export
 
-addHaloProperties <- function(x, names=NULL, HaloCatalogueIndex = NULL, verbose = FALSE) {
+addHaloProperties <- function(x, names=NULL, HaloCatalogueIndex = NULL, verbose = TRUE) {
 
   if (verbose) cooltools::tick('Add halo properties')
 
-  bindHalos()  # binds 'halos' to .internal_storage$halos
+  bindSwift(halos)
 
   if (is.null(names) & is.null(names(x))) stop('names must be provided, either implicitly via column names of x or directly in the vector names')
 
@@ -34,6 +34,9 @@ addHaloProperties <- function(x, names=NULL, HaloCatalogueIndex = NULL, verbose 
       stop("Length of `names` must match the number of columns in `x`.")
     }
   }
+
+  # check if names already exist
+  if (any(names(x)%in%names(halos))) stop('cannot overwrite existing columns with the same name. Consider calling removeHaloProperties first.')
 
   # Append x to halos
   if (is.null(HaloCatalogueIndex)) {

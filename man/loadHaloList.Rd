@@ -4,11 +4,9 @@
 \alias{loadHaloList}
 \title{Load basic halo list}
 \usage{
-loadHaloList(filename = NULL, verbose = TRUE)
+loadHaloList(verbose = TRUE)
 }
 \arguments{
-\item{filename}{Full path of the HDF5 halo file. If \code{NULL}, the value stored in `swift$paths$halos` will be used, which can be set with \code{\link{setPath}}.}
-
 \item{verbose}{Logical flag to control whether progress and timing information should be printed in console.}
 }
 \value{
@@ -22,6 +20,9 @@ Creates a `data.table` of halo properties accessible via `swift$halos`.
 Each row represents a subhalo, which is either a central subhalo (excluding substructure)
 or a satellite subhalo (associated with a central). The table includes the following columns:
 
+The full filename of the halo catalogue must be available in `swift$paths$halos`, which can be set using the function \link{setPath}.
+
+
 \itemize{
   \item \code{HaloCatalogueIndex}: Unique subhalo index.
   \item \code{TotalMass}: Total mass of all particles in the subhalo, in the units of the halo file.
@@ -30,9 +31,4 @@ or a satellite subhalo (associated with a central). The table includes the follo
   \item \code{SubhaloRankByBoundMass}: For satellite, this is the rank of the subhalo among the satellites
         belonging to the same central, from most to least massive. For centrals, this is 0.
 }
-
-For a full example workflow, see the vignette: `vignette("swift-workflow")`
-}
-\seealso{
-\link{vignette("swift-workflow")}
 }

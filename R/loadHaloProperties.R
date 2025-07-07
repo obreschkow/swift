@@ -1,122 +1,90 @@
 #' Load extra halo properties
 #'
-#' @importFrom rhdf5 h5ls h5read
+#' @importFrom hdf5r H5File
 #' @importFrom bit64 as.integer64
 #' @importFrom cooltools tick tock progress userattributes
 #' @importFrom stats setNames
 #'
-#' @description Reads additional halo properties from a SOAP HDF5 file and appends them to the existing halo table.
+#' @description Reads additional halo properties from a HDF5 halo catalogue and appends them to the existing halo table `swift$halos`.
 #'
-#' @param subtree A structured list specifying the datasets to read from the HDF5 file.
-#' @param filename Full path of the HDF5 halo file. If \code{NULL}, the value stored in `swift$paths$halos` will be used, which can be set with \code{\link{setPath}}.
+#' @param properties A vector of character strings specifying the datasets to be loaded, in the usual HDF5 structure `group/dataset`, `group/group/dataset`, etc.
 #' @param verbose Logical flag to control whether progress and timing information should be printed in console.
 #'
-#' @details This function updates `swift$halos` by appending new columns based on datasets specified in the `subtree`. The variable `halos` is bound via an active binding to refer directly to `swift$halos` within the function scope.
+#' @details This function updates `swift$halos` by appending new columns specified in `properties`. If the requested properties already exist as columns in `swift$halos`, they are ignored. The new column names are identical to the HDF5 path names in `properties`, except that `/` are replaced by `.`.
+#'
+#' The full filename of the halo catalogue must be available in `swift$paths$halos`, which can be set using the function \link{setPath}.
 #'
 #' @return None. Modifies `swift$halos` in place.
 #'
 #' @export
 
-loadHaloProperties = function(subtree, filename=NULL, verbose=TRUE) {
+loadHaloProperties = function(properties, verbose=TRUE) {
 
   if (verbose) cooltools::tick('Load extra halo properties')
 
-  bindHalos() # makes 'halos' a pointer to swift$halos
+  bindSwift(halos)
 
-  if (is.null(filename)) {
-    if (is.null(swift$paths$halos)) {
-      stop('no filename provided as argument or via swift$paths$halos, consider setting path using setPath()')
-    } else {
-      filename = swift$paths$halos
-    }
-  }
+  if (is.null(swift$paths$halos)) stop('no filename provided as argument or via swift$paths$halos, consider setting path using setPath()')
 
-  flatten_branches <- function(x, prefix = NULL) {
-    results <- list()
-    for (name in names(x)) {
-      full_name <- c(prefix, name)
-      value <- x[[name]]
-      if (is.list(value) && !is.null(names(value))) {
-        results <- c(results, flatten_branches(value, full_name))
-      } else {
-        nested <- value
-        for (n in rev(full_name)) {
-          nested <- stats::setNames(list(nested), n)
-        }
-        results[[length(results) + 1]] <- nested
-      }
-    }
-    results
-  }
+  # open HDF5 file
+  file = hdf5r::H5File$new(swift$paths$halos, mode = "r")
+  hdf5structure = file$ls(recursive = TRUE)
 
-  get_branch_names <- function(x, prefix = NULL) {
-    result <- character()
-    for (name in names(x)) {
-      full_name <- c(prefix, name)
-      if (is.list(x[[name]]) && !is.null(names(x[[name]]))) {
-        result <- c(result, get_branch_names(x[[name]], full_name))
-      } else {
-        result <- c(result, paste(full_name, collapse = "."))
-      }
-    }
-    result
-  }
+  # determine and order indices of rows to be extracted
+  masterHaloCatalogueIndex = file[['InputHalos/HaloCatalogueIndex']]$read()
+  sel = match(halos$HaloCatalogueIndex, masterHaloCatalogueIndex)
+  if (any(is.na(sel))) stop('Unknown HaloCatalogueIndex matching error.')
+  fselected = length(sel)/length(masterHaloCatalogueIndex)
+  rm(masterHaloCatalogueIndex)
+  ord = order(sel)
+  selord = sel[ord]
+  ordord = order(ord)
 
-  # remove attributes and converts 64-bit integers to 32-bit integers if possible without loss
-  simplify = function(x) {
-    myattributes = names(cooltools::userattributes(x))
-    for (a in myattributes) attr(x,a) = NULL
-    int_min = bit64::as.integer64(-2^31)
-    int_max = bit64::as.integer64(2^31 - 1)
-    if (inherits(x,"integer64") && all(x >= int_min & x <= int_max)) {
-      return(as.integer(x))
-    } else {
-      return(x)
-    }
-  }
+  for (i in seq_along(properties)) {
 
-  i = simplify(readhdf5(filename, subtree=list(InputHalos=list(HaloCatalogueIndex=NA)))[[1]][[1]])
-  sel = match(halos$HaloCatalogueIndex, i)
-  nhalos = length(i)
-
-  branches = flatten_branches(subtree)
-  nbranches = length(branches)
-
-  info = h5ls(filename)
-  info$full_path = file.path(info$group, info$name)
-
-  for (i in seq(nbranches)) {
-
-    progress(sprintf('%d/%d',i,nbranches))
+    if (verbose) progress(sprintf('%d/%d',i,length(properties)))
 
     # extract branch
-    branch = branches[[i]]
+    property = properties[i]
+    name = gsub("/", "\\.", property)
 
-    # make new column name
-    name = get_branch_names(branch)
-    path = paste0("/", gsub("\\.", "/", name))
-
-    # Determine dimensionality
-    row = which(info$full_path == path)
-    if (length(row) != 1) stop("Dataset not found or not unique")
-    dim_str = info$dim[row]
+    # Determine dimension
+    row = which(hdf5structure$name == property)
+    if (length(row) != 1) stop(sprintf("Dataset %s not found or not unique",property))
+    dim_str = hdf5structure$dataset.dims[row]
     dims = as.numeric(strsplit(dim_str, " x ")[[1]])
+    if (is.null(dims) || any(is.na(dims)) || length(dims)>2) stop(sprintf("Format of object %s not supported",property))
 
-    # Read accordingly
-    if (is.null(dims) || length(dims)==1) {
-      # 1D vector (no 'dim' attribute): use simple index
-      halos[[name]] = simplify(as.vector(h5read(filename, path, index = list(sel))))
-    } else if (length(dims)==2 && dims[1]==3) {
-      # Matrix: read all rows, selected columns
-      x = simplify(h5read(filename, path, index = list(NULL, sel)))
-      for (d in seq(3)) {
-        halos[[sprintf('%s.%s',name,c('x','y','z')[d])]] = x[d,]
+    # Read data
+    if (length(dims)==1) {
+      # Vector
+      if (is.null(halos[[name]])) {
+        if (fselected<.spareReadThreshold) {
+          x = file[[property]][selord][ordord]
+        } else {
+          x = file[[property]]$read()[sel]
+        }
+        halos[[name]] = .simplify(x)
+      }
+    } else if (length(dims)==2) {
+      # Matrix
+      if (is.null(halos[[paste0(name,'.1')]])) {
+        if (fselected<.spareReadThreshold) {
+          x = file[[property]][,selord,drop=FALSE][,ordord,drop=FALSE]
+        } else {
+          x = file[[property]]$read()[,sel,drop=FALSE]
+        }
+        for (d in seq(dims[1])) {
+          halos[[sprintf('%s.%d',name,d)]] = x[d,]
+        }
       }
     } else {
-      stop("Unsupported data dimensionality.")
+      stop(sprintf("Format of object %s not supported",property))
     }
 
   }
+
+  file$close_all()
 
   if (verbose) cooltools::tock()
 

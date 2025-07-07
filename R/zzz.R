@@ -10,7 +10,7 @@
   }
 
   # Register read-only bindings for known names
-  for (name in c("paths", "halos", "particles")) {
+  for (name in .protected_names) {
     makeReadOnlyBinding(name)
   }
 }

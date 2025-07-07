@@ -4,10 +4,12 @@
 \alias{filterHaloList}
 \title{Filter halo list}
 \usage{
-filterHaloList(HaloCatalogueIndex, verbose = TRUE)
+filterHaloList(index, isHaloCatalogueIndex = FALSE, verbose = TRUE)
 }
 \arguments{
-\item{HaloCatalogueIndex}{A vector of halo catalogue indices specifying the halos to retain.}
+\item{index}{Integer vector of halo indices. By default, these indices are interpreted as row-indices in the halo data.table `swift$halos`.}
+
+\item{isHaloCatalogueIndex}{Logical flag. If \code{TRUE}, the \code{index} values are taken to be the unique halo indices `HaloCatalogueIndex` available in the file `swift$paths$halos` and locally stored in an identically named column of `swift$halos`.}
 
 \item{verbose}{Logical flag to control whether progress and timing information should be printed in console.}
 }
@@ -15,8 +17,8 @@ filterHaloList(HaloCatalogueIndex, verbose = TRUE)
 None. Modifies `swift$halos` in place.
 }
 \description{
-Filters the halo list to a specified subset of `HaloCatalogueIndex` values, ensuring internal indices remain valid and consistent.
+Filters the halo list to a specified subset of `index` values, ensuring internal indices remain valid and consistent.
 }
 \details{
-The function updates `swift$halos` by keeping only the selected halos and any required central halos to avoid orphaned satellites. Internal indices (`HostHaloIndex`, `SubhaloRankByBoundMass`, `NumberOfSubhalos`) are recomputed accordingly. The `halos` object is locally bound via an active binding to reference `swift$halos` directly.
+The function updates `swift$halos` by keeping only the selected halos and any required central halos to avoid orphaned satellites. Internal indices (`HostHaloIndex`, `SubhaloRankByBoundMass`, `NumberOfSubhalos`) are recomputed accordingly.
 }

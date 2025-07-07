@@ -4,7 +4,7 @@
 \alias{addHaloProperties}
 \title{Add new halo properties}
 \usage{
-addHaloProperties(x, names = NULL, HaloCatalogueIndex = NULL, verbose = FALSE)
+addHaloProperties(x, names = NULL, HaloCatalogueIndex = NULL, verbose = TRUE)
 }
 \arguments{
 \item{x}{A vector, matrix, data.frame, or data.table to append as new columns to the data.table `swift$halos`.}

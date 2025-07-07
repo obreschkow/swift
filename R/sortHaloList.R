@@ -2,7 +2,7 @@
 #'
 #' @importFrom cooltools tick tock
 #'
-#' @description Sorts the halo list from most to least massive, ensuring that each central halo is followed by its associated satellite halos.
+#' @description Sorts the subhalo list from most to least massive, ensuring that each central subhalo is directly followed by its associated satellite subhalos.
 #'
 #' @param verbose Logical flag to control whether progress and timing information should be printed in console.
 #'
@@ -10,19 +10,22 @@
 #'
 #' @return None. Modifies `swift$halos` in place.
 #'
+#' @seealso \link{checkHaloList}
+#'
 #' @export
 
 sortHaloList = function(verbose=TRUE) {
 
-  if (verbose) cooltools::tick('Sort halos from most massive to least massive, with satellites following their centrals')
+  if (verbose) cooltools::tick('Sort halos by decreasing mass, with satellites following their centrals')
 
-  bindHalos() # makes 'halos' a pointer to swift$halos
+  bindSwift(halos)
 
   # checks
   if (is.null(halos)) stop('halos does not exist')
   if (is.null(halos$HostHaloIndex)) stop('halos$HostHaloIndex needed, but does not exist')
   if (is.null(halos$SubhaloRankByBoundMass)) stop('halos$SubhaloRankByBoundMass needed, but does not exist')
   if (is.null(halos$TotalMass)) stop('halos$TotalMass needed, but does not exist')
+  if (!is.null(swift$particles)) stop('swift$particles is not empty, consider calling clearSwift("particles") before sorting the halo list')
 
   # sort halos
   centrals = which(halos$HostHaloIndex==0)

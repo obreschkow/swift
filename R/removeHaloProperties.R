@@ -1,5 +1,7 @@
 #' Remove columns from the halo table
 #'
+#' @importFrom cooltools tick tock
+#'
 #' @description Removes one or more named columns from the `swift$halos` table.
 #'
 #' @param names Character vector of column names to remove.
@@ -9,13 +11,13 @@
 #'
 #' @export
 #'
-removeHaloProperties <- function(names, verbose = FALSE) {
+removeHaloProperties <- function(names, verbose = TRUE) {
 
   if (verbose) cooltools::tick('Remove halo properties')
 
   if (missing(names)) stop("Please provide one or more column names to remove.")
 
-  bindHalos()
+  bindSwift(halos)
 
   names <- as.character(names)
   existing <- names[names %in% names(halos)]

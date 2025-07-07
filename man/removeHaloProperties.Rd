@@ -4,7 +4,7 @@
 \alias{removeHaloProperties}
 \title{Remove columns from the halo table}
 \usage{
-removeHaloProperties(names, verbose = FALSE)
+removeHaloProperties(names, verbose = TRUE)
 }
 \arguments{
 \item{names}{Character vector of column names to remove.}

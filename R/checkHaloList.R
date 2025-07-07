@@ -16,12 +16,12 @@ checkHaloList = function(verbose=TRUE) {
 
   if (verbose) cooltools::tick('Check halo list for self-consistency')
 
-  bindHalos() # makes 'halos' a pointer to swift$halos
+  bindSwift(halos)
 
   # find centrals and satellites for following calculations
   centrals = which(halos$HostHaloIndex==0)
   satellites = which(halos$HostHaloIndex>0) # excludes ophans, i.e. satellites whose central was not selected
-  if (any(is.na(halos$HostHaloIndex))) stop('halo list should not contain orphans (satellites without a central)')
+  if (any(is.na(halos$HostHaloIndex))) stop('halo list must not contain orphans (satellites without a central)')
 
   # NumberOfSubhalos
   if (sum(halos$NumberOfSubhalos)!=length(satellites)) stop('halo list NumberOfSubhalos error')

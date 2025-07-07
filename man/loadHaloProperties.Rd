@@ -4,12 +4,10 @@
 \alias{loadHaloProperties}
 \title{Load extra halo properties}
 \usage{
-loadHaloProperties(subtree, filename = NULL, verbose = TRUE)
+loadHaloProperties(properties, verbose = TRUE)
 }
 \arguments{
-\item{subtree}{A structured list specifying the datasets to read from the HDF5 file.}
-
-\item{filename}{Full path of the HDF5 halo file. If \code{NULL}, the value stored in `swift$paths$halos` will be used, which can be set with \code{\link{setPath}}.}
+\item{properties}{A vector of character strings specifying the datasets to be loaded, in the usual HDF5 structure `group/dataset`, `group/group/dataset`, etc.}
 
 \item{verbose}{Logical flag to control whether progress and timing information should be printed in console.}
 }
@@ -17,8 +15,10 @@ loadHaloProperties(subtree, filename = NULL, verbose = TRUE)
 None. Modifies `swift$halos` in place.
 }
 \description{
-Reads additional halo properties from a SOAP HDF5 file and appends them to the existing halo table.
+Reads additional halo properties from a HDF5 halo catalogue and appends them to the existing halo table `swift$halos`.
 }
 \details{
-This function updates `swift$halos` by appending new columns based on datasets specified in the `subtree`. The variable `halos` is bound via an active binding to refer directly to `swift$halos` within the function scope.
+This function updates `swift$halos` by appending new columns specified in `properties`. If the requested properties already exist as columns in `swift$halos`, they are ignored. The new column names are identical to the HDF5 path names in `properties`, except that `/` are replaced by `.`.
+
+The full filename of the halo catalogue must be available in `swift$paths$halos`, which can be set using the function \link{setPath}.
 }

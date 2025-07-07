@@ -1,0 +1,24 @@
+#' Generate default filename for storing swift data
+#'
+#' @importFrom digest digest
+#'
+#' @description
+#' Constructs a quasi-unique and reproducible filename for storing the global `swift` environment
+#' using a md5-hash of `swift$paths`. The file is placed in the directory
+#' specified by `swift$paths$tmp`.
+#'
+#' This function is typically used by \code{\link{saveSwiftData}} and \code{\link{loadSwiftData}}
+#' when no filename is explicitly provided.
+#'
+#' @return A character string with the full path to the generated `.img` file.
+#'
+#' @seealso \link{saveSwiftData}, \link{loadSwiftData}
+#'
+#' @export
+
+swiftFileName <- function() {
+  if (is.null(swift$paths)) stop("No filename provided and swift$paths is NULL")
+  if (is.null(swift$paths$tmp)) stop("No filename provided and swift$paths$tmp is NULL")
+  filename <- paste0(swift$paths$tmp, digest::digest(swift$paths, algo="md5"), '.img')
+  return(filename)
+}
