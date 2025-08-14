@@ -13,25 +13,36 @@ loadParticlesInHalos(
 \arguments{
 \item{species}{Integer vector of particle types to include. Recognized values are: `0` (gas), `1` (dark matter), `2` (background), `3` sink, `4` (stars), `5` (black holes), and `6` (neutrinos). Defaults to all four.}
 
-\item{properties}{Character vector of particle properties to load. Defaults to `c("Masses", "Coordinates", "Velocities")`. These properties have to exist in the snapshot files, except for the property `Rank_bound`, which is assumed to exist in the memembership file.}
+\item{properties}{Character vector of particle properties to load. Defaults to `c("Masses", "Coordinates", "Velocities")`. These properties have to exist in the snapshot files, except for the property `Rank_bound`, which is assumed to exist in the membership file.}
 
 \item{verbose}{Logical flag to enable timing and progress messages.}
 }
 \value{
-None. The loaded particle data is stored in the `swift$particles` list, with one `data.table` per species. Pointers to the particle data added as new columns to `swift$halos` (see details).
+None. The loaded particle data is stored in the `swift$particles` list. Pointers to the particle data are added as new columns to `swift$halos` (see details).
 }
 \description{
-This function loads properties of particles associated with bound subhalos in a SWIFT simulation, which have previously been selected and stored in the data.table `swift$halos`.
+This function loads properties of particles associated with bound subhalos in a SWIFT simulation, which have previously been selected and stored in the data.frame `swift$halos`.
 }
 \details{
-Particle data is read from multiple subvolume files. For each particle species, only the particles bound to selected halos stored in `swift$halos` are loaded, and their properties are mapped into preallocated data.tables based on their halo membership.
-The particle data is written into the list `swift$particles`, which contains a separate `data.table` for each particle species.
-In each `data.table`, the particles appear sequentially, halo-by-halo, with halos ordered as in `swift$halos`.
-For each species `#`, two new columns are added to `swift$halos`: `npart.#` contains the number of bound particles of that species in each subhalo, and `ipart.#` gives the 1-based index of the first corresponding particle in the `data.table` `swift$particles$PartType#`.
-These two columns allow efficient access to all particles belonging to a given subhalo, since they appear contiguously and in order of binding energy rank.
-Also note that if \link{sortHaloList} is called before loading the particles, satellite subhalos immediatelly follow their centrals. In this case, the particle data of each halo, including its substructure, appear contiguously in `swift$particles`.\cr
+Particle data is read from multiple subvolume files. For each particle species, only the particles bound to selected subhalos stored in `swift$halos` are loaded, where subhalo associations are red from membership files.\cr
 
-All required file paths and filename patterns must be provided via the list `swift$paths`, using the fields `snapshot`, `membership`, and `tmp`. These paths can be set using the function \link{setPath}.
+Particle data are written into the list `swift$particles`, which contains a separate structure `PartType#` for each particle species.
+Individual particle properties of a given species are written into a big matrix `swift$particles$PartType#$data`,
+created via the \code{bigmemory} package. These matrices (one per species) are stored on the disk in the directory
+`[swift$.paths$tmp/particledata]` with filenames specified in `swift$particles$PartType#$filename`. Data are
+automatically loaded into the RAM when needed in a fast and memory-lean manner.\cr
+
+Each particle occupies one row in `swift$particles$PartType#$data`, halo-by-halo,
+with halos ordered as in `swift$halos`.\cr
+
+For each species `#`, two new columns are added to `swift$halos`: `npart.#` is the number of bound particles of that species in each subhalo, and `ipart.#` gives the 1-based index of the first corresponding particle
+in the matrix `swift$particles$PartType#$data`.
+These pointers allow efficient access to all particles belonging to a given subhalo. If \link{sortHaloList} is called
+before loading the particles, satellite subhalos immediately follow their centrals.
+In this case, the particle data of each halo, including its substructure, appear contiguously in
+the particle matrices.\cr
+
+All required file paths and filename patterns must be provided via the list `swift$.paths`, using the fields `snapshot`, `membership`, and `tmp`. These paths can be set using the function \link{setPath}.
 }
 \seealso{
 \link{setPath}, \link{sortHaloList}

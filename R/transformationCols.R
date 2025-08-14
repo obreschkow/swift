@@ -23,12 +23,11 @@ transformationCols = function(transformation) {
 
   bindSwift(halos)
 
-  x <- which(unlist(lapply(swift$halos, attr, which = "transformation")) == transformation)
-  icol <- as.integer(x)
-  names <- names(x)
+  names <- names(unlist(lapply(halos, attr, which = "transformation")) == transformation)
+  icol <- match(names,names(halos))
   d <- as.integer(substr(names, nchar(names), nchar(names)))
 
-  if (!all(d %in% 1:3))
+  if (!all(d %in% 1:3) | any(d/seq(3)!=1))
     stop("Column names not consistent with vector component suffixes .1, .2, .3")
 
   return(list(icol[d == 1], icol[d == 2], icol[d == 3]))

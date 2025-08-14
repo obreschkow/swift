@@ -17,7 +17,7 @@ None. The value is stored in `swift[[name]]`.
 \description{
 Stores a value in the global `swift` object under a specified name.
 This function is used primarily to write values into the protected (read-only)
-fields of swift, such as `swift$paths`, `swift$halos`, `swift$particles`, `swfit$simulation`.
+fields of swift, such as `swift$.paths`, `swift$halos`, `swift$particles`, `swfit$simulation`.
 }
 \examples{
 setSwift("simulation$BoxSize", 100)

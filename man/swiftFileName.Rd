@@ -7,12 +7,12 @@
 swiftFileName()
 }
 \value{
-A character string with the full path to the generated `.img` file.
+A character string with the full path, but no file extension.
 }
 \description{
 Constructs a quasi-unique and reproducible filename for storing the global `swift` environment
-using a md5-hash of `swift$paths`. The file is placed in the directory
-specified by `swift$paths$tmp`.
+using a md5-hash of the file properties (basename, size, timestamp) of the HDF5-files given in `swift$.paths`.
+The filename is placed in the directory specified by `swift$.paths$tmp`.
 
 This function is typically used by \code{\link{saveSwiftData}} and \code{\link{loadSwiftData}}
 when no filename is explicitly provided.

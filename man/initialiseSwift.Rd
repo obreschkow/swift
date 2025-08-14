@@ -13,8 +13,9 @@ initialiseSwift(verbose = TRUE)
 None. Modifies the global `swift$simulation` object.
 }
 \description{
-Loads simulation metadata from a SWIFT snapshot file, stores it in `swift$simulation`, and determines which particle species are present.
+Loads simulation metadata from a SWIFT snapshot file and stores it in `swift$simulation`. Metadata properties containing the pattern `thisfile` are removed, assuming that they are specific to a subvolume.
+Available particle species present are determined automatically and stored in the integer vector `swift$simulation$PartTypes`.
 }
 \details{
-The filename pattern of snapshots must be provided via the list `swift$paths$snapshot`, which can be set using the function \link{setPath}.
+The filename pattern of snapshots must be provided via the list `swift$.paths$snapshot`, which can be set using the function \link{setPath}.
 }

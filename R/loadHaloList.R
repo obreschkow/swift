@@ -1,19 +1,17 @@
 #' Load basic halo list
 #'
-#' @importFrom bit64 as.integer64
-#' @importFrom cooltools readhdf5 tick tock userattributes
-#' @import data.table data.table
+#' @importFrom cooltools tick tock
+#' @importFrom hdf5r H5File
 #'
-#' @description Loads basic halo properties from an HDF5 file and constructs a `data.table` with key columns required for further analysis.
+#' @description Loads basic halo properties from an HDF5 file and constructs a `data.frame` with key columns required for further analysis.
 #'
 #' @param verbose Logical flag to control whether progress and timing information should be printed in console.
 #'
-#' @details Creates a `data.table` of halo properties accessible via `swift$halos`.
+#' @details Creates a `data.frame` of halo properties accessible via `swift$halos`.
 #' Each row represents a subhalo, which is either a central subhalo (excluding substructure)
 #' or a satellite subhalo (associated with a central). The table includes the following columns:
 #'
-#' The full filename of the halo catalogue must be available in `swift$paths$halos`, which can be set using the function \link{setPath}.
-#'
+#' The full filename of the halo catalogue must be available in `swift$.paths$halos`, which can be set using the function \link{setPath}.
 #'
 #' \itemize{
 #'   \item \code{HaloCatalogueIndex}: Unique subhalo index.
@@ -34,17 +32,27 @@ loadHaloList = function(verbose=TRUE) {
 
   bindSwift(halos)
 
-  if (is.null(swift$paths$halos)) stop('no filename provided as argument or via swift$paths$halos, consider setting path using setPath()')
+  if (is.null(swift$.paths$halos)) stop('no filename provided as argument or via swift$.paths$halos, consider setting path using setPath()')
 
   # Load basic HDF5 data
-  subtree = list(InputHalos=list(HaloCatalogueIndex=NA),
-                 SOAP=list(HostHaloIndex=NA, SubhaloRankByBoundMass=NA),
-                 BoundSubhalo=list(TotalMass=NA))
-  dat = cooltools::readhdf5(swift$paths$halos, subtree = subtree)
-  halos = data.table::data.table(HaloCatalogueIndex=.simplify(dat$InputHalos$HaloCatalogueIndex),
-                                 TotalMass=.simplify(dat$BoundSubhalo$TotalMass),
-                                 HostHaloIndex=.simplify(dat$SOAP$HostHaloIndex+1),
-                                 SubhaloRankByBoundMass=.simplify(dat$SOAP$SubhaloRankByBoundMass))
+  file = hdf5r::H5File$new(swift$.paths$halos, mode = "r")
+  hdf5structure = file$ls(recursive = TRUE)
+  groups = list(c('InputHalos','HaloCatalogueIndex'),
+                c('SOAP','HostHaloIndex'),
+                c('SOAP','SubhaloRankByBoundMass'),
+                c('BoundSubhalo','TotalMass'))
+  icol = which(hdf5structure$name==paste0(groups[[1]],collapse='/'))
+  nhalos = as.numeric(hdf5structure$dataset.dims[icol])
+  halos = as.data.frame(matrix(NA,nrow=nhalos,ncol=0))
+  for (group in groups) {
+    name = group[2]
+    full = paste0(group,collapse='/')
+    halos[[name]] = .simplify(file[[full]]$read())
+  }
+  file$close_all()
+
+  # adjust HostHaloIndex to 1-based indexing
+  halos$HostHaloIndex = halos$HostHaloIndex+1
 
   if (verbose) cooltools::tock(sprintf('# halos = %d',nrow(halos)))
 

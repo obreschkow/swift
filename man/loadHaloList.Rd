@@ -13,15 +13,14 @@ loadHaloList(verbose = TRUE)
 None. The loaded halo list is stored in `swift$halos`.
 }
 \description{
-Loads basic halo properties from an HDF5 file and constructs a `data.table` with key columns required for further analysis.
+Loads basic halo properties from an HDF5 file and constructs a `data.frame` with key columns required for further analysis.
 }
 \details{
-Creates a `data.table` of halo properties accessible via `swift$halos`.
+Creates a `data.frame` of halo properties accessible via `swift$halos`.
 Each row represents a subhalo, which is either a central subhalo (excluding substructure)
 or a satellite subhalo (associated with a central). The table includes the following columns:
 
-The full filename of the halo catalogue must be available in `swift$paths$halos`, which can be set using the function \link{setPath}.
-
+The full filename of the halo catalogue must be available in `swift$.paths$halos`, which can be set using the function \link{setPath}.
 
 \itemize{
   \item \code{HaloCatalogueIndex}: Unique subhalo index.

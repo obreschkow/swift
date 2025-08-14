@@ -20,5 +20,5 @@ Reads additional halo properties from a HDF5 halo catalogue and appends them to 
 \details{
 This function updates `swift$halos` by appending new columns specified in `properties`. If the requested properties already exist as columns in `swift$halos`, they are ignored. The new column names are identical to the HDF5 path names in `properties`, except that `/` are replaced by `.`.
 
-The full filename of the halo catalogue must be available in `swift$paths$halos`, which can be set using the function \link{setPath}.
+The full filename of the halo catalogue must be available in `swift$.paths$halos`, which can be set using the function \link{setPath}.
 }

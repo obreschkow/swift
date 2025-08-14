@@ -7,9 +7,9 @@
 filterHaloList(index, isHaloCatalogueIndex = FALSE, verbose = TRUE)
 }
 \arguments{
-\item{index}{Integer vector of halo indices. By default, these indices are interpreted as row-indices in the halo data.table `swift$halos`.}
+\item{index}{Integer vector of halo indices or logical vector. Integer indices are interpreted as row-indices in the halo data.frame `swift$halos`, except of `isHaloCatalogueIndex` is set to \code{TRUE}. Logical vectors must have a length matched to the number of halos in `swift$halos`, and are directly indicated which halos to select.}
 
-\item{isHaloCatalogueIndex}{Logical flag. If \code{TRUE}, the \code{index} values are taken to be the unique halo indices `HaloCatalogueIndex` available in the file `swift$paths$halos` and locally stored in an identically named column of `swift$halos`.}
+\item{isHaloCatalogueIndex}{Logical flag. If \code{TRUE}, the \code{index} values are taken to be the unique halo indices `HaloCatalogueIndex` available in the file `swift$.paths$halos` and locally stored in an identically named column of `swift$halos`.}
 
 \item{verbose}{Logical flag to control whether progress and timing information should be printed in console.}
 }

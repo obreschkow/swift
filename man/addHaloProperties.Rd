@@ -4,14 +4,22 @@
 \alias{addHaloProperties}
 \title{Add new halo properties}
 \usage{
-addHaloProperties(x, names = NULL, HaloCatalogueIndex = NULL, verbose = TRUE)
+addHaloProperties(
+  x,
+  names = NULL,
+  index = NULL,
+  isHaloCatalogueIndex = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
-\item{x}{A vector, matrix, data.frame, or data.table to append as new columns to the data.table `swift$halos`.}
+\item{x}{A vector, matrix, data.frame, or data.table to append as new column(s) to the data.table `swift$halos`.}
 
 \item{names}{A character string or vector of strings specifying the name(s) of the new column(s). If not given, the column names of \code{x} are used.}
 
-\item{HaloCatalogueIndex}{Optional vector specifying the rows in the halo table where the new properties should be written. If \code{NULL}, all rows are updated, and the order is the same as in \code{x}.}
+\item{index}{Optional integer vector of halo indices. These indices are interpreted as row-indices in the halo table `swift$halos` or as the unique `HaloCatalogueIndex` values, depending on the argument \code{isHaloCatalogueIndex}.}
+
+\item{isHaloCatalogueIndex}{Logical flag. If \code{TRUE}, the \code{index} values are taken to be the unique `HaloCatalogueIndex` available in the file `swift$.paths$halos` and locally stored in an identically named column of `swift$halos`.}
 
 \item{verbose}{Logical flag to control whether progress and timing information should be printed in the console.}
 }

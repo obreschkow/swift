@@ -1,5 +1,5 @@
-# call bindSwift(paths)
-# to make paths a substitute for swift$paths, etc.
+# call bindSwift(.paths)
+# to make paths a substitute for swift$.paths, etc.
 
 bindSwift <- function(name) {
   n <- as.character(substitute(name))

@@ -15,9 +15,9 @@ fetchHalo(
 )
 }
 \arguments{
-\item{index}{Integer halo index. By default, this index is interpreted as row-index in the halo data.table `swift$halos`.}
+\item{index}{Integer halo index. By default, this index is interpreted as row-index in the halo table `swift$halos`.}
 
-\item{isHaloCatalogueIndex}{Logical flag. If \code{TRUE}, the \code{index} value is taken to be the unique `HaloCatalogueIndex` available in the file `swift$paths$halos` and locally stored in an identically named column of `swift$halos`.}
+\item{isHaloCatalogueIndex}{Logical flag. If \code{TRUE}, the \code{index} value is taken to be the unique `HaloCatalogueIndex` available in the file `swift$.paths$halos` and locally stored in an identically named column of `swift$halos`.}
 
 \item{unwrap}{Logical flag to control whether the objects are unwrapped using periodic boundary conditions. Requires size of simulation box to be specified in `swift$simulation$BoxSize`.}
 

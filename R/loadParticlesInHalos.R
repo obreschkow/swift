@@ -4,28 +4,39 @@
 #' @importFrom utils tail
 #' @importFrom bigmemory big.matrix
 #' @importFrom cooltools tick tock progress
+#' @importFrom data.table data.table shift .N :=
 #'
-#' @description This function loads properties of particles associated with bound subhalos in a SWIFT simulation, which have previously been selected and stored in the data.table `swift$halos`.
+#' @description This function loads properties of particles associated with bound subhalos in a SWIFT simulation, which have previously been selected and stored in the data.frame `swift$halos`.
 #'
 #' @param species Integer vector of particle types to include. Recognized values are: `0` (gas), `1` (dark matter), `2` (background), `3` sink, `4` (stars), `5` (black holes), and `6` (neutrinos). Defaults to all four.
-#' @param properties Character vector of particle properties to load. Defaults to `c("Masses", "Coordinates", "Velocities")`. These properties have to exist in the snapshot files, except for the property `Rank_bound`, which is assumed to exist in the memembership file.
+#' @param properties Character vector of particle properties to load. Defaults to `c("Masses", "Coordinates", "Velocities")`. These properties have to exist in the snapshot files, except for the property `Rank_bound`, which is assumed to exist in the membership file.
 #' @param verbose Logical flag to enable timing and progress messages.
 #'
-#' @details Particle data is read from multiple subvolume files. For each particle species, only the particles bound to selected halos stored in `swift$halos` are loaded, and their properties are mapped into preallocated data.tables based on their halo membership.
-#' The particle data is written into the list `swift$particles`, which contains a separate `data.table` for each particle species.
-#' In each `data.table`, the particles appear sequentially, halo-by-halo, with halos ordered as in `swift$halos`.
-#' For each species `#`, two new columns are added to `swift$halos`: `npart.#` contains the number of bound particles of that species in each subhalo, and `ipart.#` gives the 1-based index of the first corresponding particle in the `data.table` `swift$particles$PartType#`.
-#' These two columns allow efficient access to all particles belonging to a given subhalo, since they appear contiguously and in order of binding energy rank.
-#' Also note that if \link{sortHaloList} is called before loading the particles, satellite subhalos immediatelly follow their centrals. In this case, the particle data of each halo, including its substructure, appear contiguously in `swift$particles`.\cr
+#' @details Particle data is read from multiple subvolume files. For each particle species, only the particles bound to selected subhalos stored in `swift$halos` are loaded, where subhalo associations are red from membership files.\cr
 #'
-#' All required file paths and filename patterns must be provided via the list `swift$paths`, using the fields `snapshot`, `membership`, and `tmp`. These paths can be set using the function \link{setPath}.
+#' Particle data are written into the list `swift$particles`, which contains a separate structure `PartType#` for each particle species.
+#' Individual particle properties of a given species are written into a big matrix `swift$particles$PartType#$data`,
+#' created via the \code{bigmemory} package. These matrices (one per species) are stored on the disk in the directory
+#' `[swift$.paths$tmp/particledata]` with filenames specified in `swift$particles$PartType#$filename`. Data are
+#' automatically loaded into the RAM when needed in a fast and memory-lean manner.\cr
 #'
-#' @return None. The loaded particle data is stored in the `swift$particles` list, with one `data.table` per species. Pointers to the particle data added as new columns to `swift$halos` (see details).
+#' Each particle occupies one row in `swift$particles$PartType#$data`, halo-by-halo,
+#' with halos ordered as in `swift$halos`.\cr
+#'
+#' For each species `#`, two new columns are added to `swift$halos`: `npart.#` is the number of bound particles of that species in each subhalo, and `ipart.#` gives the 1-based index of the first corresponding particle
+#' in the matrix `swift$particles$PartType#$data`.
+#' These pointers allow efficient access to all particles belonging to a given subhalo. If \link{sortHaloList} is called
+#' before loading the particles, satellite subhalos immediately follow their centrals.
+#' In this case, the particle data of each halo, including its substructure, appear contiguously in
+#' the particle matrices.\cr
+#'
+#' All required file paths and filename patterns must be provided via the list `swift$.paths`, using the fields `snapshot`, `membership`, and `tmp`. These paths can be set using the function \link{setPath}.
+#'
+#' @return None. The loaded particle data is stored in the `swift$particles` list. Pointers to the particle data are added as new columns to `swift$halos` (see details).
 #'
 #' @seealso \link{setPath}, \link{sortHaloList}
 #'
 #' @export
-
 
 loadParticlesInHalos = function(species=NULL, properties=c('Masses','Coordinates','Velocities'), verbose=TRUE) {
 
@@ -67,21 +78,21 @@ loadParticlesInHalos = function(species=NULL, properties=c('Masses','Coordinates
 
   # check paths
   for (field in c('snapshot','membership','tmp')) {
-    if (is.null(swift$paths[[field]])) {
-      stop(sprintf('no path provided via swift$paths$%s, please set via setPath()',field))
+    if (is.null(swift$.paths[[field]])) {
+      stop(sprintf('no path provided via swift$.paths$%s, please set via setPath()',field))
     }
   }
 
   # check filenames and count subvolumes
-  fn.snapshot.list = Sys.glob(sub('%d','*',swift$paths$snapshot))
-  fn.membership.list = Sys.glob(sub('%d','*',swift$paths$membership))
-  if (length(fn.snapshot.list)==0) stop(sprintf('cannot find file %s',swift$paths$snapshot))
-  if (length(fn.membership.list)==0) stop(sprintf('cannot find file %s',swift$paths$membership))
+  fn.snapshot.list = Sys.glob(sub('%d','*',swift$.paths$snapshot))
+  fn.membership.list = Sys.glob(sub('%d','*',swift$.paths$membership))
+  if (length(fn.snapshot.list)==0) stop(sprintf('cannot find file %s',swift$.paths$snapshot))
+  if (length(fn.membership.list)==0) stop(sprintf('cannot find file %s',swift$.paths$membership))
   if (length(fn.snapshot.list)!=length(fn.membership.list)) stop('number of snapshot files differs from number of membership files')
   nsubvolumes = length(fn.snapshot.list)
 
   # make directory for particle data
-  directory = paste0(swift$paths$tmp,'particledata')
+  directory = paste0(swift$.paths$tmp,'particledata')
   dir.create(directory, showWarnings = FALSE)
 
   # delete existing particles
@@ -90,24 +101,25 @@ loadParticlesInHalos = function(species=NULL, properties=c('Masses','Coordinates
   # add extra halo properties for each species
   for (s in species) {
     # number of particles per halo
+    oldnames = colnames(halos)
     loadHaloProperties(sprintf('BoundSubhalo/NumberOf%s',PartTypeName(s)),verbose=FALSE) # number of particles per halo
-    setnames(halos, utils::tail(names(halos), 1), sprintf("npart.%d",s))
+    colnames(halos) = c(oldnames, sprintf("npart.%d",s))
     # first particle index in particle table
-    halos[[sprintf('ipart.%d',s)]] = 1+cumsum(as.double(shift(halos[[sprintf('npart.%d',s)]],fill=0)))
+    halos[[sprintf('ipart.%d',s)]] = 1+cumsum(as.double(data.table::shift(halos[[sprintf('npart.%d',s)]],fill=0)))
   }
 
   # make temporary index to write particles
-  current.pointer = data.table(matrix(0,nrow=nrow(halos),ncol=length(species)))
+  current.pointer = matrix(0,nrow=nrow(halos),ncol=length(species))
   colnames(current.pointer) = paste0('PartType',species)
   for (s in species) {
     field = sprintf('PartType%d',s)
-    current.pointer[[field]] = halos[[sprintf('ipart.%d',s)]]
+    current.pointer[,field] = halos[[sprintf('ipart.%d',s)]]
   }
 
   # initialize list holding/linking the particle data
   str = c()
-  for (field in c('paths','simulation','halos')) {
-    if (!is.null(swift[[field]])) str = c(str,digest::digest(swift$paths, algo='md5'))
+  for (field in c('simulation','halos')) {
+    if (!is.null(swift[[field]])) str = c(str,digest::digest(swift[[field]], algo='md5'))
   }
   str = digest::digest(str, algo='md5')
   particles = list()
@@ -249,17 +261,17 @@ loadParticlesInHalos = function(species=NULL, properties=c('Masses','Coordinates
           isubhalo = isubhalo[sel]
           dt = data.table(idx = isubhalo, id = seq_along(isubhalo))
           nrep = dt[, x := seq_len(.N) - 1, by = idx]$x # vector of same length as isubhalo, giving the cummulative count a value of isubhalo has appeared already
-          index = current.pointer[[field]][isubhalo]+nrep
+          index = current.pointer[isubhalo,field]+nrep
           rm(isubhalo)
 
-          # increase the values of current.pointer[[field]] for 'index' computation at next iteration
+          # increase the values of current.pointer[,field] for 'index' computation at next iteration
           occurrence_dt = dt[, .N, by = idx]
           i = occurrence_dt$idx  # unique values in isubhalo
           N = occurrence_dt$N    # number of occurrences of each value of isubhalo
-          current.pointer[[field]][i] = current.pointer[[field]][i]+N
+          current.pointer[i,field] = current.pointer[i,field]+N
           rm(dt, occurrence_dt)
 
-          # read properties and write into data.table
+          # read properties and write into big matrix
           icol = 0
           for (iprop in seq_along(particles[[field]]$properties)) {
 
@@ -312,6 +324,12 @@ loadParticlesInHalos = function(species=NULL, properties=c('Masses','Coordinates
 
   if (iprogress!=nprogress) stop('Progress error')
   if (npart.check!=npart.tot) stop('Inconsistent particle count.')
+
+  if (is.null(swift$backup$stage)) {
+    particles$addedAfterStage = 0
+  } else {
+    particles$addedAfterStage = swift$backup$stage
+  }
 
   if (verbose) cooltools::tock(sprintf('# particles = %d',npart.tot))
 

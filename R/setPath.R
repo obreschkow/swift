@@ -1,6 +1,6 @@
 #' Set a named file path
 #'
-#' @description Stores a file path in `swift$paths` under a specified name.
+#' @description Stores a file path in `swift$.paths` under a specified name.
 #' These paths are used by other functions that accept `filename = NULL`.
 #'
 #' @param name A character string specifying the name of the path to set. Examples include:
@@ -12,7 +12,7 @@
 #'             }
 #' @param path A character string specifying the full file or directory path.
 #'
-#' @return None. The named path is stored in `swift$paths[[name]]`.
+#' @return None. The named path is stored in `swift$.paths[[name]]`.
 #'
 #' @examples
 #' setPath("particles", "/data/snapshot_199.%d.hdf5")
@@ -21,9 +21,9 @@
 #'
 setPath = function(name, path) {
 
-  bindSwift(paths)
+  bindSwift(.paths)
 
-  paths[[name]] = path
+  .paths[[name]] = path
 
   invisible(NULL)
 

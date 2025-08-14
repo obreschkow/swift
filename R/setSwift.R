@@ -4,7 +4,7 @@
 #'
 #' @description Stores a value in the global `swift` object under a specified name.
 #' This function is used primarily to write values into the protected (read-only)
-#' fields of swift, such as `swift$paths`, `swift$halos`, `swift$particles`, `swfit$simulation`.
+#' fields of swift, such as `swift$.paths`, `swift$halos`, `swift$particles`, `swfit$simulation`.
 #'
 #' @param name A character string specifying the name/key to be written. Sub-lists can be specified using the `$` symbol.
 #' @param value The value to store under `swift[[name]]`. Can be a path, object, or structure depending on context.

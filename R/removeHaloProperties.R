@@ -19,15 +19,13 @@ removeHaloProperties <- function(names, verbose = TRUE) {
 
   bindSwift(halos)
 
+  # identify columns to remove
   names <- as.character(names)
-  existing <- names[names %in% names(halos)]
+  icol <- match(names,colnames(halos))
+  if (any(is.na(icol))) stop('unrecognised names, not matching column names in swift$halos')
 
-  if (length(existing) == 0) {
-    warning("None of the specified columns were found in `swift$halos`.")
-    return(invisible(NULL))
-  }
-
-  halos[, (existing) := NULL]
+  # remove columns
+  halos = halos[,-icol,drop=FALSE]
 
   if (verbose) cooltools::tock()
 

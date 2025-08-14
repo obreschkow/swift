@@ -1,5 +1,5 @@
 # Define protected names that should be read-only
-.protected_names <- c("paths", "simulation",  "halos", "particles")
+.protected_names <- c(".paths", "simulation",  "halos", "particles", "backup")
 
 # The following parameter is the fraction of items to read from a HDF5 group, below which
 # a spare reading, x=file[[group]][sel], is adopted rather than a full reading with
@@ -37,7 +37,7 @@ utils::globalVariables(c(
 }
 
 # produces a quasi-unique identifier of an environment
-.hashEnvironment = function(env) {
-  contents <- as.list(env, all.names = TRUE)
-  digest::digest(serialize(contents[order(names(contents))], NULL), algo = "md5")
+.hashEnvironment = function(env, exclude=NULL) {
+  contents <- as.list(env, all.names = FALSE)
+  digest::digest(serialize(contents[sort(setdiff(names(contents),exclude))], NULL), algo = "md5")
 }

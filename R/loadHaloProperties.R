@@ -1,9 +1,7 @@
 #' Load extra halo properties
 #'
 #' @importFrom hdf5r H5File
-#' @importFrom bit64 as.integer64
-#' @importFrom cooltools tick tock progress userattributes
-#' @importFrom stats setNames
+#' @importFrom cooltools tick tock progress
 #'
 #' @description Reads additional halo properties from a HDF5 halo catalogue and appends them to the existing halo table `swift$halos`.
 #'
@@ -12,7 +10,7 @@
 #'
 #' @details This function updates `swift$halos` by appending new columns specified in `properties`. If the requested properties already exist as columns in `swift$halos`, they are ignored. The new column names are identical to the HDF5 path names in `properties`, except that `/` are replaced by `.`.
 #'
-#' The full filename of the halo catalogue must be available in `swift$paths$halos`, which can be set using the function \link{setPath}.
+#' The full filename of the halo catalogue must be available in `swift$.paths$halos`, which can be set using the function \link{setPath}.
 #'
 #' @return None. Modifies `swift$halos` in place.
 #'
@@ -24,10 +22,10 @@ loadHaloProperties = function(properties, verbose=TRUE) {
 
   bindSwift(halos)
 
-  if (is.null(swift$paths$halos)) stop('no filename provided as argument or via swift$paths$halos, consider setting path using setPath()')
+  if (is.null(swift$.paths$halos)) stop('no filename provided as argument or via swift$.paths$halos, consider setting path using setPath()')
 
   # open HDF5 file
-  file = hdf5r::H5File$new(swift$paths$halos, mode = "r")
+  file = hdf5r::H5File$new(swift$.paths$halos, mode = "r")
   hdf5structure = file$ls(recursive = TRUE)
 
   # determine and order indices of rows to be extracted
@@ -42,7 +40,7 @@ loadHaloProperties = function(properties, verbose=TRUE) {
 
   for (i in seq_along(properties)) {
 
-    if (verbose) progress(sprintf('%d/%d',i,length(properties)))
+    if (verbose) cooltools::progress(sprintf('%d/%d',i,length(properties)))
 
     # extract branch
     property = properties[i]

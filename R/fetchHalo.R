@@ -9,8 +9,8 @@
 #' This function assumes that halo and particle data have already been loaded into memory
 #' via the `swift$halos` and `swift$particles` objects, respectively.
 #'
-#' @param index Integer halo index. By default, this index is interpreted as row-index in the halo data.table `swift$halos`.
-#' @param isHaloCatalogueIndex Logical flag. If \code{TRUE}, the \code{index} value is taken to be the unique `HaloCatalogueIndex` available in the file `swift$paths$halos` and locally stored in an identically named column of `swift$halos`.
+#' @param index Integer halo index. By default, this index is interpreted as row-index in the halo table `swift$halos`.
+#' @param isHaloCatalogueIndex Logical flag. If \code{TRUE}, the \code{index} value is taken to be the unique `HaloCatalogueIndex` available in the file `swift$.paths$halos` and locally stored in an identically named column of `swift$halos`.
 #' @param unwrap Logical flag to control whether the objects are unwrapped using periodic boundary conditions. Requires size of simulation box to be specified in `swift$simulation$BoxSize`.
 #' @param properties Vector of character strings specifying the properties to be extracted. If `NULL` all available properties are returned. For vector properties, provide the vector name (e.g. `Coordinates`) without component index (e.g. `Coordinates.1`).
 #' @param substructure Logical flag for including substructure. If \code{TRUE} and if the requested index refers to a central subhalo, partlcies from its satellite subhalos are included.
@@ -112,11 +112,11 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
 
   # Unwrap coordinates
   if (unwrap) {
-    for (d in which(wrapped)) {
-      L = BoxSize[d]
-      for (s in species) {
-        field = sprintf('PartType%d',s)
-        if (!is.null(x[[field]]$Coordinates) && nrow(x[[field]]$Coordinates)>0) {
+    for (s in species) {
+      field = sprintf('PartType%d',s)
+      if (!is.null(x[[field]]$Coordinates) && nrow(x[[field]]$Coordinates)>0) {
+        for (d in which(wrapped)) {
+          L = BoxSize[d]
           x[[field]]$Coordinates[,d] = (x[[field]]$Coordinates[,d]+L/2)%%L+L/2
         }
       }
@@ -131,7 +131,9 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
     tc = transformationCols('position')
     for (d in which(wrapped)) {
       L = BoxSize[d]
-      for (icol in tc[[d]]) x$Halos[[icol]] = (x$Halos[[icol]]+L/2)%%L+L/2
+      for (icol in tc[[d]]) {
+        x$Halos[[icol]] = (x$Halos[[icol]]+L/2)%%L+L/2
+      }
     }
   }
 

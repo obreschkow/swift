@@ -18,10 +18,10 @@ setPath(name, path)
 \item{path}{A character string specifying the full file or directory path.}
 }
 \value{
-None. The named path is stored in `swift$paths[[name]]`.
+None. The named path is stored in `swift$.paths[[name]]`.
 }
 \description{
-Stores a file path in `swift$paths` under a specified name.
+Stores a file path in `swift$.paths` under a specified name.
 These paths are used by other functions that accept `filename = NULL`.
 }
 \examples{
