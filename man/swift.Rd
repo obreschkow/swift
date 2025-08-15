@@ -31,6 +31,9 @@ setPath('snapshot',gsub('\\\\.0\\\\.','.\%d.',
 setPath('membership',gsub('\\\\.0\\\\.','.\%d.',
         system.file("colibre", "membership_0127.0.hdf5", package = "swift")))
 
+# supress intermediate progress updates in test console
+assign("suppressProgress", TRUE, envir = getNamespace("cooltools")$.cooltools.env)
+
 # load post-processed simulation data, if available
 loadSwiftData()
 
@@ -107,12 +110,12 @@ x = fetchHalo(1, species=c(0,4), substructure=TRUE, verbose=TRUE)
 # render halo
 par(mar=rep(0.1,4))
 library(gadgetry)
-plot(x, npixels=100, width=1, center=getVector(x$Halos[1,],'InputHalos.HaloCentre'))
+plot(x, width=1, center=getVector(x$Halos[1,],'InputHalos.HaloCentre'))
 
-# delete all data using
-# deleteSwiftData()
+# post-processed data can be deleted using
+# > deleteSwiftData()
 # or all data up from a certain stage onward using
-# deleteSwiftData(...)
+# > deleteSwiftData([stage index])
 }
 
 }

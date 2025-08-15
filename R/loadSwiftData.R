@@ -32,7 +32,7 @@ loadSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
   pattern = paste0(filename,'.*.img')
   files <- Sys.glob(pattern)
   if (length(files)==0) {
-    cooltools::tock('Unavailable.')
+    cooltools::tock('Not yet available.')
     backup = NULL
     return(invisible(NULL))
   }

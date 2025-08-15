@@ -1,7 +1,7 @@
 Package: swift
 Type: Package
 Title: Handle Astrophysical Simulation Data
-Version: 0.6
+Version: 0.7
 Authors@R: 
     c(person(given = "Danail",
              family = "Obreschkow",
