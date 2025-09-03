@@ -2,7 +2,7 @@
 % Please edit documentation in R/fetchHalo.R
 \name{fetchHalo}
 \alias{fetchHalo}
-\title{Fetch particles associated with one or more halos}
+\title{Fetch particles associated with a subhalo}
 \usage{
 fetchHalo(
   index,
@@ -35,9 +35,9 @@ A list of particle matrices, one for each selected species (e.g., `PartType1`, `
 The list is assigned the class `snapshot` for compatibility with downstream functions, such as `plot`.
 }
 \description{
-Retrieves the particles associated with one or more halos from the currently loaded data.
+Retrieves the particles associated with a subhalo, and optionally its substructure, from the currently loaded data.
 }
 \details{
 This function assumes that halo and particle data have already been loaded into memory
-via the `swift$halos` and `swift$particles` objects, respectively.
+via the `swift$halos` and `swift$particles$halos` objects, respectively.
 }

@@ -5,7 +5,7 @@
 \alias{swift}
 \title{Basic handling of SWIFT/SOAP simulation data}
 \format{
-An object of class \code{environment} of length 5.
+An object of class \code{environment} of length 6.
 }
 \usage{
 swift
@@ -13,104 +13,85 @@ swift
 \description{
 `swift` is both the name of this package and of its main user-facing environment.
 
-The swift package Routines to handle astrophysical simulation data output by the hydro-gravitational N-body simulation code SWIFT (SPH With Inter-dependent Fine-grained Tasking), as well as value-added data generated with SOAP (Spherical Overdensity Aperture Processor).
+The swift package Routines to handle astrophysical simulation data output by the hydro-gravitational N-body simulation code SWIFT
+(SPH With Inter-dependent Fine-grained Tasking), as well as value-added data generated with SOAP (Spherical Overdensity Aperture Processor).
 
 Data are store locally in the `swift` package and environment.
 }
 \examples{
 \donttest{
-# The following example uses most of the package’s main routines.
-#
-# set path where temporary fast-access files are stored
-setPath('tmp','/Users/00077389/Data/tmp/')
+# The following example illustrates most of the package’s main routines.
 
-# set paths to simulation data
-setPath('halos',system.file("colibre", "halo_properties_0127.hdf5", package = "swift"))
-setPath('snapshot',gsub('\\\\.0\\\\.','.\%d.',
-        system.file("colibre", "colibre_0127.0.hdf5", package = "swift")))
-setPath('membership',gsub('\\\\.0\\\\.','.\%d.',
-        system.file("colibre", "membership_0127.0.hdf5", package = "swift")))
+# plotting options
+show.full.box = TRUE
+show.halo = TRUE
 
-# supress intermediate progress updates in test console
-assign("suppressProgress", TRUE, envir = getNamespace("cooltools")$.cooltools.env)
+# set global paths (customize these as desired)
+setPath('examples',path.expand("~/Data/SwiftExamples/"))
+setPath('tmp',path.expand("~/Data/SwiftTmp/"))
 
-# load post-processed simulation data, if available
+# optionally download data
+downloadExamples()
+
+# set paths to specific simulation snapshot
+base = paste0(swift$.paths$examples,'colibre/L0012N0094/')
+setPath('halos',paste0(base,'halo_properties_0127.hdf5'))
+setPath('snapshot',paste0(base,'colibre_0127.\%d.hdf5'))
+setPath('membership',paste0(base,'membership_0127.\%d.hdf5'))
+
+# load latest local post-processed data for the paths given above
 loadSwiftData()
 
-# initialise post-processing and load/filter halo list with linking properties
+# load initialize data
 if (isSwiftStage(0)) {
-
-  # delete existing data in swift environment, if any
-  clearSwift()
-
-  # initialise simulation
-  initialiseSwift()
-
-  # load basic halo list
-  loadHaloList()
-
-  # apply basic selection function
-  filterHaloList(swift$halos$TotalMass>10)
-
-  # sort central subhalos from most massive to least massive with satellites
-  # following their centrals, ordered by their own ranked mass
-  sortHaloList()
-
-  # check for self consistency
-  checkHaloList()
-
-  # save halos
-  saveSwiftData()
-
+  clearSwift() # delete existing data in swift environment, if any
+  initialiseSwift() # initialise simulation
+  saveSwiftData() # save environment
 }
 
-# load particle data of selected halos
+# partition simulation box and load all particles
 if (isSwiftStage(1)) {
-
-  # load particles data
-  loadParticlesInHalos()
-
-  # save swift environment for later quick assess via loadSwiftData()
-  saveSwiftData()
-
+  makeGridCells() # partition the simulation in a cartesian grid of cubic cells
+  loadParticles('cells') # load all particles
+  saveSwiftData() # save environment
 }
 
-# load/add additional halo properties and assign transformation rules
+# plot full simulation box
+if (show.full.box) {
+  x = fetchCell(1:512, unwrap=F,verbose=T)
+  par(mar=rep(0.1,4))
+  render(x, npixels=400,center=6.25,width=12.5,gamma=.7)
+}
+
+# make custom halo list
 if (isSwiftStage(2)) {
-
-  # populate halo list with additional properties from file
-  properties = 'InputHalos/HaloCentre'
-  for (g1 in c('ExclusiveSphere','InclusiveSphere')) {
-    for (g2 in c('3kpc','10kpc','30kpc','50kpc','100kpc')) {
-      for (g3 in c('TotalMass','StellarMass','AtomicHydrogenMass','CentreOfMass')) {
-        properties = c(properties,paste(g1,g2,g3,sep='/'))
-      }
-    }
-  }
-  loadHaloProperties(properties)
-  rm(properties,g1,g2,g3)
-
-  # add custom halo properties
-  addHaloProperties(seq(nrow(swift$halos)), 'my.property')
-
-  # assign transformation properties to halos
-  # this will ensure that these halo properties are also transformed,
-  # if the particles are transformed in a certain way, e.g. un-wrapped around
-  # periodic boundaries
-  assignHaloTransformation('centre','position')
-
-  # save swift environment for later quick assess via loadSwiftData()
-  saveSwiftData()
-
+  loadHaloList() # load master list of halos
+  filterHaloList(swift$halos$TotalMass>1e1) # apply basic selection function
+  sortHaloList() # sort central subhalos by decreasing mass, satellites follow their centrals
+  checkHaloList() # check for self consistency
+  saveSwiftData() # save environment
 }
 
-# extract particle data of single halo
-x = fetchHalo(1, species=c(0,4), substructure=TRUE, verbose=TRUE)
+# load particles in selected halos
+if (isSwiftStage(3)) {
+  loadParticles('halos', species=c(0,4)) # loads all gas and star particles
+  saveSwiftData() # save environment
+}
 
-# render halo
-par(mar=rep(0.1,4))
-library(gadgetry)
-plot(x, width=1, center=getVector(x$Halos[1,],'InputHalos.HaloCentre'))
+# assign additional halo properties
+if (isSwiftStage(4)) {
+  loadHaloProperties(c('InputHalos/HaloCentre','ExclusiveSphere/50kpc/StellarMass'))
+  addHaloProperties(seq(nrow(swift$halos)), 'my.property') # add custom halo properties
+  assignHaloTransformation('centre','position') # assign transformation properties to halos
+  saveSwiftData() # save environment
+}
+
+# plot one halo
+if (show.halo) {
+  x = fetchHalo(1, species=c(0,4), substructure=TRUE, verbose=TRUE)
+  par(mar=rep(0.1,4))
+  render(x, npixels=400, width=1, center=getVector(x$halos[1,],'InputHalos.HaloCentre'))
+}
 
 # post-processed data can be deleted using
 # > deleteSwiftData()

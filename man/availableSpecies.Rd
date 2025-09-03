@@ -4,10 +4,10 @@
 \alias{availableSpecies}
 \title{Return available particle species}
 \usage{
-availableSpecies(particle.list = NULL)
+availableSpecies(container)
 }
 \arguments{
-\item{particle.list}{Optional list of particle data. If `NULL`, it uses `swift$particles`.}
+\item{container}{Character string pointing to the particle container `swift$particles[[container]]`.}
 }
 \value{
 Integer vector of particle species.

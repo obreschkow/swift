@@ -1,7 +1,7 @@
 Package: swift
 Type: Package
 Title: Handle Astrophysical Simulation Data
-Version: 0.7
+Version: 0.9
 Authors@R: 
     c(person(given = "Danail",
              family = "Obreschkow",
@@ -11,12 +11,15 @@ Authors@R:
 Description: Routines to handle astrophysical simulation data output by the hydro-gravitational N-body simulation code SWIFT (SPH With Inter-dependent Fine-grained Tasking), as well as value-added data generated with SOAP (Spherical Overdensity Aperture Processor).
 Imports:
     cooltools,
-    gadgetry,
     data.table,
     stats,
     hdf5r,
     digest,
-    bigmemory
+    bigmemory,
+    png,
+    Rcpp
 License: GPL-3
 Encoding: UTF-8
 RoxygenNote: 7.3.2
+LinkingTo: Rcpp
+NeedsCompilation: yes

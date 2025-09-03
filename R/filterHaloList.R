@@ -19,7 +19,7 @@ filterHaloList = function(index, isHaloCatalogueIndex=FALSE, verbose=TRUE) {
 
   if (verbose) cooltools::tick('Filter halos')
 
-  if (!is.null(swift$particles)) stop('swift$particles is not empty, consider calling clearSwift("particles") before filtering the halo list')
+  if (!is.null(swift$particles$halos)) stop('swift$particles is not empty, consider calling clearSwift("particles") before filtering the halo list')
 
   bindSwift(halos)
 

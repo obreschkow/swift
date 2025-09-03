@@ -5,19 +5,15 @@
 #' the one stored in `swift$particles` (if no argument is provided). Only entries
 #' with names matching the pattern "PartType#" are considered.
 #'
-#' @param particle.list Optional list of particle data. If `NULL`, it uses `swift$particles`.
+#' @param container Character string pointing to the particle container `swift$particles[[container]]`.
 #'
 #' @return Integer vector of particle species.
 #'
 #' @export
 
-availableSpecies = function(particle.list = NULL) {
+availableSpecies = function(container) {
 
-  if (is.null(particle.list)) {
-    bindSwift(particles)
-  } else {
-    particles = particle.list
-  }
+  bindSwift(particles,paste0('particles$',container))
 
   if (is.null(particles)) stop("particles is NULL")
 

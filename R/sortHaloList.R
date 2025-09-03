@@ -25,7 +25,7 @@ sortHaloList = function(verbose=TRUE) {
   if (is.null(halos$HostHaloIndex)) stop('halos$HostHaloIndex needed, but does not exist')
   if (is.null(halos$SubhaloRankByBoundMass)) stop('halos$SubhaloRankByBoundMass needed, but does not exist')
   if (is.null(halos$TotalMass)) stop('halos$TotalMass needed, but does not exist')
-  if (!is.null(swift$particles)) stop('swift$particles is not empty, consider calling clearSwift("particles") before sorting the halo list')
+  if (!is.null(swift$particles$halos)) stop('swift$particles is not empty, consider calling clearSwift("particles") before sorting the halo list')
 
   # sort halos
   centrals = which(halos$HostHaloIndex==0)

@@ -90,18 +90,24 @@ loadSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
 
     # Reattach bigmemory data
     if (!is.null(swift$particles)) {
-      all_names = names(swift$particles)
-      if (length(all_names)>0) {
-        valid = grepl("^PartType\\d+$", all_names)
-        if (any(valid)) {
-          options(bigmemory.allow.dimnames=TRUE)
-          directory = paste0(swift$.paths$tmp,'particledata/')
-          species_names = all_names[valid]
-          for (field in species_names) {
-            fn = paste0(directory,swift$particles[[field]]$filename,".txt")
-            if (!file.exists(fn)) stop(sprintf('cannot find particle data file %s',fn))
-            .internal_storage$particles[[field]]$data = bigmemory::attach.big.matrix(fn)
-            colnames(.internal_storage$particles[[field]]$data) = swift$particles[[field]]$colnames
+      all_containers = names(swift$particles)
+      if (length(all_containers)>0) {
+        if (!all(all_containers%in%c('halos','cells'))) stop('cannot yet deal with containers other than "halos" and "cells"')
+        for (container in all_containers) {
+          all_names = names(swift$particles[[container]])
+          if (length(all_names)>0) {
+            valid = grepl("^PartType\\d+$", all_names)
+            if (any(valid)) {
+              options(bigmemory.allow.dimnames=TRUE)
+              directory = paste0(swift$.paths$tmp,'particledata/')
+              species_names = all_names[valid]
+              for (field in species_names) {
+                fn = paste0(directory,swift$particles[[container]][[field]]$filename,".txt")
+                if (!file.exists(fn)) stop(sprintf('cannot find particle data file %s',fn))
+                .internal_storage$particles[[container]][[field]]$data = bigmemory::attach.big.matrix(fn)
+                colnames(.internal_storage$particles[[container]][[field]]$data) = swift$particles[[container]][[field]]$colnames
+              }
+            }
           }
         }
       }

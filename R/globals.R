@@ -1,5 +1,5 @@
 # Define protected names that should be read-only
-.protected_names <- c(".paths", "simulation",  "halos", "particles", "backup")
+.protected_names <- c(".paths", "simulation",  "halos", "cells", "particles", "backup")
 
 # The following parameter is the fraction of items to read from a HDF5 group, below which
 # a spare reading, x=file[[group]][sel], is adopted rather than a full reading with
@@ -20,7 +20,8 @@ utils::globalVariables(c(
   "NumberOfSubhalos",
   "TotalMass",
   "idx",
-  "Rank_bound"
+  "Rank_bound",
+  "j", "index", ".N"
 ))
 
 # remove attributes and converts 64-bit integers to double if possible without loss

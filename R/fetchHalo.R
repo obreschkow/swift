@@ -1,13 +1,13 @@
-#' Fetch particles associated with one or more halos
+#' Fetch particles associated with a subhalo
 #'
 #' @importFrom cooltools tick tock
 #'
 #' @description
-#' Retrieves the particles associated with one or more halos from the currently loaded data.
+#' Retrieves the particles associated with a subhalo, and optionally its substructure, from the currently loaded data.
 #'
 #' @details
 #' This function assumes that halo and particle data have already been loaded into memory
-#' via the `swift$halos` and `swift$particles` objects, respectively.
+#' via the `swift$halos` and `swift$particles$halos` objects, respectively.
 #'
 #' @param index Integer halo index. By default, this index is interpreted as row-index in the halo table `swift$halos`.
 #' @param isHaloCatalogueIndex Logical flag. If \code{TRUE}, the \code{index} value is taken to be the unique `HaloCatalogueIndex` available in the file `swift$.paths$halos` and locally stored in an identically named column of `swift$halos`.
@@ -25,23 +25,26 @@
 
 fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=NULL, substructure=FALSE, species=NULL, verbose=FALSE) {
 
-  if (verbose) cooltools::tick('Fetch halo')
+  if (verbose) cooltools::tick('Fetch particles in halo')
 
   if (is.null(swift$halos)) stop('swift$halos table is not available')
   if (is.null(swift$particles)) stop('swift$particles data are not available')
+  if (is.null(swift$particles$halos)) stop('swift$particles$halos data are not available')
 
   bindSwift(halos)
-  bindSwift(particles)
+  bindSwift(particles,"particles$halos")
 
   # basic input checks
   if (length(index)>1) stop('index must be a single value')
   if (is.null(species)) {
-    species = availableSpecies()
+    species = availableSpecies('halos')
   } else {
-    if (!all(species%in%availableSpecies())) stop('not all species are available')
+    if (!all(species%in%availableSpecies('halos'))) stop('not all species are available')
   }
   if (unwrap) {
-    if (is.null(swift$simulation$BoxSize)) stop('swift$simulation$BoxSize must be available if unwrap=TRUE, consider using setSwift()')
+    if (is.null(swift$simulation) || is.null(swift$simulation$BoxSize)) {
+      stop('swift$simulation$BoxSize must be available if unwrap=TRUE. Consider loading metadata via initialiseSwift() or using setSwift().')
+    }
     BoxSize = swift$simulation$BoxSize
     if (length(BoxSize)==1) BoxSize = rep(BoxSize,3)
     wrapped = rep(FALSE,3)
@@ -111,7 +114,7 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
   }
 
   # Unwrap coordinates
-  if (unwrap) {
+  if (unwrap && any(wrapped)) {
     for (s in species) {
       field = sprintf('PartType%d',s)
       if (!is.null(x[[field]]$Coordinates) && nrow(x[[field]]$Coordinates)>0) {
@@ -124,15 +127,15 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
   }
 
   # Add halo dat of selected subhalos
-  x$Halos = halos[allrows,]
+  x$halos = halos[allrows,]
 
   # also wrap coordinates in halo data
-  if (unwrap) {
+  if (unwrap && any(wrapped)) {
     tc = transformationCols('position')
     for (d in which(wrapped)) {
       L = BoxSize[d]
       for (icol in tc[[d]]) {
-        x$Halos[[icol]] = (x$Halos[[icol]]+L/2)%%L+L/2
+        x$halos[[icol]] = (x$halos[[icol]]+L/2)%%L+L/2
       }
     }
   }

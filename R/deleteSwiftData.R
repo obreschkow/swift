@@ -42,26 +42,38 @@ deleteSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
 
   nfiles = 0
 
-  # remove particles
-  if (!is.null(swift$particles$addedAfterStage)) {
-    i = swift$particles$addedAfterStage+1
-    if (i%in%stages) {
-      fn = files[i]
-      tmp_env <- new.env()
-      load(fn, envir = tmp_env)
-      if (!is.null(tmp_env$particles)) {
-        all_names = names(tmp_env$particles)
-        if (length(all_names)>0) {
-          valid = grepl("^PartType\\d+$", all_names)
-          if (any(valid)) {
-            directory = paste0(swift$.paths$tmp,'particledata/')
-            species_names = all_names[valid]
-            for (field in species_names) {
-              for (extension in c('.txt','.bin')) {
-                fnpart = paste0(directory,tmp_env$particles[[field]]$filename,extension)
-                if (file.exists(fnpart)) {
-                  file.remove(fnpart)
-                  nfiles = nfiles+1
+  for (i in stages) {
+
+    fn = files[i]
+
+    # remove particles files, if produced after this stage
+    tmp_env <- new.env()
+    load(fn, envir = tmp_env)
+    if (!is.null(tmp_env$particles)) {
+      all_containers = names(tmp_env$particles)
+      if (length(all_containers)>0) {
+        if (!all(all_containers%in%c('halos','cells'))) stop('cannot yet deal with containers other than "halos" and "cells"')
+        for (container in all_containers) {
+          if (!is.null(tmp_env$particles[[container]])) {
+            if (!is.null(tmp_env$particles[[container]]$addedAfterStage)) {
+              ienv = tmp_env$particles[[container]]$addedAfterStage+1
+              if (ienv==i) {
+                all_names = names(tmp_env$particles[[container]])
+                if (length(all_names)>0) {
+                  valid = grepl("^PartType\\d+$", all_names)
+                  if (any(valid)) {
+                    directory = paste0(swift$.paths$tmp,'particledata/')
+                    species_names = all_names[valid]
+                    for (field in species_names) {
+                      for (extension in c('.txt','.bin')) {
+                        fnpart = paste0(directory,tmp_env$particles[[container]][[field]]$filename,extension)
+                        if (file.exists(fnpart)) {
+                          file.remove(fnpart)
+                          nfiles = nfiles+1
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
@@ -69,11 +81,6 @@ deleteSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
         }
       }
     }
-  }
-
-  for (i in stages) {
-
-    fn = files[i]
 
     # remove image file
     file.remove(fn)

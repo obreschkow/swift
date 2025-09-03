@@ -27,7 +27,7 @@ swiftFileName <- function() {
   pattern <- paste0("\\.(", paste(extensions, collapse = "|"), ")$", collapse = "")
   matches <- grepl(pattern, paths_vec, ignore.case = TRUE)
   paths_filtered <- paths_vec[matches]
-  if (length(paths_filtered)==0) stop("Error generating filename")
+  if (length(paths_filtered)==0) stop("Check if all paths in swift$.paths exist")
   info <- file.info(paths_filtered) # Get file information
   sizes <- info$size
   timestamps <- as.POSIXct(info$mtime, tz = "UTC")

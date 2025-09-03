@@ -4,7 +4,7 @@
       if (missing(v)) {
         .internal_storage[[name]]
       } else {
-        stop(sprintf("Direct modification of 'swift$%s' is not allowed.", name))
+        stop(sprintf("Direct modification of 'swift$%s' is not allowed. Use setSwift() instead.", name), call. = FALSE)
       }
     }, env = swift)
   }
