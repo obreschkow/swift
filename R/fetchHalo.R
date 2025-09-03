@@ -19,7 +19,6 @@
 #' @param verbose Logical flag to enable timing and progress messages.
 #'
 #' @return A list of particle matrices, one for each selected species (e.g., `PartType1`, `PartType4`, etc.).
-#' The list is assigned the class `snapshot` for compatibility with downstream functions, such as `plot`.
 #'
 #' @export
 
@@ -142,8 +141,6 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
 
   # Add other post-processing information
   x$Information = list(substructure=substructure, unwrap=unwrap)
-
-  class(x) = 'snapshot'
 
   if (verbose) cooltools::tock(sprintf('# particles = %d',npart.tot))
 

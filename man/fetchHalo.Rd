@@ -32,7 +32,6 @@ fetchHalo(
 }
 \value{
 A list of particle matrices, one for each selected species (e.g., `PartType1`, `PartType4`, etc.).
-The list is assigned the class `snapshot` for compatibility with downstream functions, such as `plot`.
 }
 \description{
 Retrieves the particles associated with a subhalo, and optionally its substructure, from the currently loaded data.
