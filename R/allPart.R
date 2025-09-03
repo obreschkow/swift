@@ -8,8 +8,6 @@
 #'
 #' @return Returns an N-vector or an N-by-3 matrix representing the property "field" of all the requested particles.
 #'
-#' @author Danail Obreschkow
-#'
 #' @export
 
 allPart = function(dat, field = 'Coordinates', species = seq(0,5)) {

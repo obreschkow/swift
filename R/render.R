@@ -60,12 +60,16 @@
 #'
 #' @return Returns a structured list of parameters and arrays useful to analyse and reproduce the figure.
 #'
-#' @author Danail Obreschkow
-#'
 #' @examples
+#' \donttest{# INITIALISE: SET PATH TO AND DOWNLOAD EXAMPLE DATA IF NOT YET AVAILABLE
+#' # set data path (customize these as desired)
+#' setPath('examples',path.expand("~/Data/SwiftExamples/"))
+#' # download data if not yet available
+#' downloadExamples()
+#'
 #' ## EXAMPLE 1: COLIBRE GALAXY COLOURED BY GAS IONIZATION FRACTION
 #' # load a test galaxy from the COLIBRE simulation (L25m5)
-#' filename = system.file('galaxy2.hdf5', package='swift')
+#' filename = file.path(swift$.paths$examples, 'colibre/L0025N0752/galaxy2.hdf5')
 #' sn = cooltools::readhdf5(filename)
 #'
 #' # set gas rendering parameters, such that it is colored by the
@@ -86,8 +90,8 @@
 #'
 #' ## EXAMPLE 2: COLIBRE GALAXY COLOURED BY GAS TEMPERATURE
 #' # load a test galaxy from the COLIBRE simulation (L25m5)
-#' filename = system.file('galaxy2.hdf5', package='swift')
-#' sn = readhdf5(filename)
+#' filename = file.path(swift$.paths$examples, 'colibre/L0025N0752/galaxy2.hdf5')
+#' sn = cooltools::readhdf5(filename)
 #'
 #' # set gas rendering parameters, such that it is colored by temperature
 #' sn$PartType0$gamma = .8
@@ -100,9 +104,9 @@
 #' render(sn, center=0, width=0.07, rotation=c(0,1.6,0.55), types=0, npixels=500, arrows=FALSE)
 #'
 #' ## EXAMPLE 3: LOW-RES TEST GALAXY WITH DARK MATTER
-#' # load galaxy
-#' filename = system.file('galaxy1.hdf5', package='swift')
-#' sn = readhdf5(filename)
+#' # load a test galaxy from the COLIBRE simulation (L25m5)
+#' filename = file.path(swift$.paths$examples, 'colibre/L0025N0752/galaxy1.hdf5')
+#' sn = cooltools::readhdf5(filename)
 #'
 #' # rendering parameters of dark matter
 #' sn$PartType1$col = '#0511ff'
@@ -121,6 +125,7 @@
 #' col = cooltools::lightness(allPart(out, 'col'), 0.65)
 #' legend(out$header$xlim[1],out$header$ylim[2],c('Dark matter','Stars'),
 #'        col=col,pch=16,text.col=col,bty='n')
+#' }
 #'
 #' @export
 render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL, fov=NULL, depth=NULL, taper=FALSE,

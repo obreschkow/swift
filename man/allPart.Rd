@@ -19,6 +19,3 @@ Returns an N-vector or an N-by-3 matrix representing the property "field" of all
 \description{
 Concatenate identical properties of different particle species in a Swift/Gadget snapshot
 }
-\author{
-Danail Obreschkow
-}
