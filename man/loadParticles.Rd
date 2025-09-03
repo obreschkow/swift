@@ -12,11 +12,10 @@ loadParticles(
 )
 }
 \arguments{
-\item{method}{One of the following
+\item{method}{One of the following character strings
 \itemize{
-  \item
-  \item Character string \code{"halos"}: Loads all the particles associated with the subhalos stored in the data.frame `swift$halos`, normally created earlier via \link{loadHaloList}. Subhalo associations are red from membership files, whose path must be set in `swift$.paths$membership`.
-  \item Character string \code{"cells"}: Loads all the particles specified in the data.frame `swift$cells`, which must contain columns named `x`, `y`, `z`, specifying the cell centres, as well as columns named `width` and/or `radius` specifying, either the side-length of cubic cells or the radius of spherical ones.
+  \item \code{"halos"}: Loads all the particles associated with the subhalos stored in the data.frame `swift$halos`, normally created earlier via \link{loadHaloList}. Subhalo associations are red from membership files, whose path must be set in `swift$.paths$membership`.
+  \item \code{"cells"}: Loads all the particles specified in the data.frame `swift$cells`, which must contain columns named `x`, `y`, `z`, specifying the cell centres, as well as columns named `width` and/or `radius` specifying, either the side-length of cubic cells or the radius of spherical ones.
 }}
 
 \item{species}{Integer vector of particle types to include. Recognized values are: `0` (gas), `1` (dark matter), `2` (background), `3` sink, `4` (stars), `5` (black holes), and `6` (neutrinos). Defaults to all four.}
