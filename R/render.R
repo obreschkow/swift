@@ -231,9 +231,9 @@ render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL
 
     # determine if the data is a cubic box
     L = apply(apply(x,2,range),2,diff)
-    dx = apply(apply(x,2,range),1,diff)
     Lmax = max(L)
-    is.box = all(L/Lmax>1-1e-3) & all(abs(dx/Lmax)<1e-3)
+    R_manhattan = max(colSums(abs(t(p)-apply(apply(p,2,range),2,mean))))
+    is.box = all(L/Lmax>1-1e-3) & (abs(R_manhattan/Lmax-1.5)<0.05)
   }
 
   # determine geometric center
