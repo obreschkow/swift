@@ -239,7 +239,7 @@ render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL
   # determine geometric center
   if (is.null(center)) {
     if (is.box) {
-      center = rep((max(x)+min(x))/2,3)
+      center = apply(apply(x,2,range),2,mean)
     } else {
       center = colSums(x)/dim(x)[1] # geometric centre
     }
