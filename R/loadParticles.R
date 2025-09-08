@@ -403,7 +403,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
     particles$addedAfterStage = swift$backup$stage
   }
 
-  if (verbose) cooltools::tock(sprintf('# particles = %d',npart.tot))
+  if (verbose) cooltools::tock(sprintf('# particles = %s',npart.tot))
 
   invisible(NULL)
 
