@@ -373,7 +373,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
               # NOTE: In this case, the code does not use fselected to distinguish between
               # a partial reading mode (x = file.snapshot[[group]][,sel,drop=FALSE])
               # and the full reading mode, as the former can get stuck for large vectors.
-              x = file.snapshot[[group]]$read()[,sel,drop=FALSE]
+              x = rbind(file.snapshot[[group]]$read())[,sel,drop = FALSE] # rbind needed if data only has one row
               for (d in seq_len(particles[[field]]$ncolprop[iprop])) {
                 icol = icol+1
                 iprogress = iprogress+nrow(match)
