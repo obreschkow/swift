@@ -93,11 +93,15 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
       property = prop[iprop]
       ncol = particles[[field]]$ncolprop[which(particles[[field]]$properties==property)]
       if (ncol==1) {
-        x[[field]][[property]] = particles[[field]]$data[sel,property]
+        ip = which(particles[[field]]$colnames==property)
+        if (length(ip)!=1) stop('particle property indexing error')
+        x[[field]][[property]] = particles[[field]]$data[sel,ip]
       } else {
         mat = matrix(NA, nrow=length(sel), ncol=ncol)
         for (icol in seq_len(ncol)) {
-          mat[,icol] = particles[[field]]$data[sel,sprintf('%s.%d',property,icol)]
+          ip = which(particles[[field]]$colnames==sprintf('%s.%d',property,icol))
+          if (length(ip)!=1) stop('particle property indexing error')
+          mat[,icol] = particles[[field]]$data[sel,ip]
         }
         x[[field]][[property]] = mat
       }

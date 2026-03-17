@@ -11,7 +11,7 @@
 #' @param method One of the following character strings
 #' \itemize{
 #'   \item \code{"halos"}: Loads all the particles associated with the subhalos stored in the data.frame `swift$halos`, normally created earlier via \link{loadHaloList}. Subhalo associations are red from membership files, whose path must be set in `swift$.paths$membership`.
-#'   \item \code{"cells"}: Loads all the particles specified in the data.frame `swift$cells`, which must contain columns named `x`, `y`, `z`, specifying the cell centres, as well as columns named `width` and/or `radius` specifying, either the side-length of cubic cells or the radius of spherical ones.
+#'   \item \code{"cells"}: Loads all the particles specified in the data.frame `swift$cells`, which must contain columns named `x`, `y`, `z`, specifying the cell centres, as well as columns named `width` and/or `radius` specifying, either the side-length of cubic cells or the radius of spherical ones. Such a data.frame can be generated using \link{makeGridCells}.
 #' }
 #' @param species Integer vector of particle types to include. Recognized values are: `0` (gas), `1` (dark matter), `2` (background), `3` sink, `4` (stars), `5` (black holes), and `6` (neutrinos). Defaults to all four.
 #' @param properties Character vector of particle properties to load. Defaults to `c("Masses", "Coordinates", "Velocities")`. These properties have to exist in the snapshot files, except for the property `Rank_bound`, which is assumed to exist in the membership file.
@@ -146,6 +146,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
     }
 
     for (isub in seq(nsubvolumes)) {
+      if (verbose) cooltools::progress(sprintf('(pre-loading subvolume %d/%d)',isub,nsubvolumes))
       file.snapshot = hdf5r::H5File$new(fn.snapshot.list[isub], mode = "r")
       for (s in species) {
         pts = t(file.snapshot[[sprintf('PartType%d/Coordinates',s)]]$read())
@@ -271,7 +272,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
   }
 
   # allocate large data array
-  options(bigmemory.allow.dimnames=TRUE)
+  if (verbose) cooltools::progress('(allocate big.matrx object)')
   for (s in species) {
     field = sprintf('PartType%d',s)
     if (particles[[field]]$npart>0) {
@@ -285,7 +286,6 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
                                                       backingpath=directory,
                                                       backingfile=paste0(particles[[field]]$filename,".bin"),
                                                       descriptorfile=paste0(particles[[field]]$filename,".txt"))
-      colnames(particles[[field]]$data) = particles[[field]]$colnames
     }
   }
 
@@ -367,18 +367,27 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
                 }
               }
               iprogress = iprogress+nrow(match)
-              cooltools::progress(sprintf('%.2f%%',iprogress/nprogress*100))
+              if (verbose) cooltools::progress(sprintf('%.2f%%',iprogress/nprogress*100))
               particles[[field]]$data[index,icol] = .simplify(x)[match[,1]]
             } else {
               # NOTE: In this case, the code does not use fselected to distinguish between
               # a partial reading mode (x = file.snapshot[[group]][,sel,drop=FALSE])
               # and the full reading mode, as the former can get stuck for large vectors.
-              x = rbind(file.snapshot[[group]]$read())[,sel,drop = FALSE] # rbind needed if data only has one row
+              x = as.matrix(file.snapshot[[group]]$read())[,sel,drop = FALSE] # rbind needed if data only has one row
               for (d in seq_len(particles[[field]]$ncolprop[iprop])) {
                 icol = icol+1
                 iprogress = iprogress+nrow(match)
-                cooltools::progress(sprintf('%.2f%%',iprogress/nprogress*100))
+                if (verbose) cooltools::progress(sprintf('%.2f%%',iprogress/nprogress*100))
+                out <<- list()
+                out$x <<- x
+                out$d <<- d
+                out$match <<- match
+                out$field <<- field
+                out$index <<- index
+                out$icol <<- icol
+                out$check <<- 23
                 particles[[field]]$data[index,icol] = x[d,match[,1]]
+                out$check <<- 17
               }
             }
           }

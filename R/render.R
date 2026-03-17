@@ -410,8 +410,10 @@ render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL
         sigma = (snapshot[[field]]$Masses/snapshot[[field]]$Density)^(1/3)
       }
     }
+    print('a')
     out[[field]]$density = cooltools::kde2(x, w=weight, xlim=xlim, ylim=ylim, n=nx, smoothing=snapshot[[field]]$smoothing,
                                 sigma=sigma, algorithm=snapshot[[field]]$kde)$field
+    print('b')
     out[[field]]$density[out[[field]]$density<0] = 0
     out[[field]]$n.eff = sum(out[[field]]$density)*dx^2
 

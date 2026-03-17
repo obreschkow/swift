@@ -58,32 +58,42 @@ fetchCell = function(index, unwrap=TRUE, properties=NULL, species=NULL, verbose=
       prop = particles[[field]]$properties
     } else {
       prop = intersect(properties,particles[[field]]$properties)
-      if (length(prop) == 0) warning(sprintf("No valid properties found for species %d", s))
     }
+    if (length(prop) == 0) warning(sprintf("No valid properties found for species %d", s))
 
     # determine number of particles
-    npart = cells[[sprintf('npart.%d',s)]][index]
+    npart = as.numeric(cells[[sprintf('npart.%d',s)]][index])
     npart.this = sum(npart)
 
     if (npart.this>0) {
 
       npart.tot = npart.tot+npart.this
 
-      # determine particle indices
-      ipart = cells[[sprintf('ipart.%d',s)]][index]
-      sel = sequence(npart, from = ipart)
+      # determine all indices of the particles to fetch
+      ipart = as.numeric(cells[[sprintf('ipart.%d',s)]][index])
+      sel = unlist(
+        lapply(seq_along(npart), function(i) {
+          if (npart[i] > 0)
+            ipart[i] + seq_len(npart[i]) - 1
+        }),
+        use.names = FALSE
+      )
 
-      # extract properties
+      # extract desired particle properties
       x[[field]] = list()
       for (iprop in seq_along(prop)) {
         property = prop[iprop]
         ncol = particles[[field]]$ncolprop[which(particles[[field]]$properties==property)]
         if (ncol==1) {
-          x[[field]][[property]] = particles[[field]]$data[sel,property]
+          ip = which(particles[[field]]$colnames==property)
+          if (length(ip)!=1) stop('particle property indexing error')
+          x[[field]][[property]] = particles[[field]]$data[sel,ip]
         } else {
           mat = matrix(NA, nrow=length(sel), ncol=ncol)
           for (icol in seq_len(ncol)) {
-            mat[,icol] = particles[[field]]$data[sel,sprintf('%s.%d',property,icol)]
+            ip = which(particles[[field]]$colnames==sprintf('%s.%d',property,icol))
+            if (length(ip)!=1) stop('particle property indexing error')
+            mat[,icol] = particles[[field]]$data[sel,ip]
           }
           x[[field]][[property]] = mat
         }

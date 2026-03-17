@@ -1,7 +1,7 @@
 Package: swift
 Type: Package
 Title: Handle Astrophysical Simulation Data from SWIFT/SOAP
-Version: 0.11
+Version: 0.12
 Authors@R: 
     c(person(given = "Danail",
              family = "Obreschkow",
@@ -28,6 +28,6 @@ Imports:
     Rcpp
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 LinkingTo: Rcpp
 NeedsCompilation: yes

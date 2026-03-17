@@ -2,7 +2,7 @@
 % Please edit documentation in R/cellIndex.R
 \name{cellIndex}
 \alias{cellIndex}
-\title{Map 3D points to cubic of spherical cells}
+\title{Map 3D points to cubic or spherical cells}
 \usage{
 cellIndex(points, cells, boxsize = NA_real_, voxel_size = NA_real_)
 }

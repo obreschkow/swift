@@ -2,7 +2,7 @@
 #' @importFrom Rcpp evalCpp
 NULL
 
-#' Map 3D points to cubic of spherical cells
+#' Map 3D points to cubic or spherical cells
 #'
 #' Efficiently computes all matches between 3D \code{points} and a set of 3D \code{cells},
 #' where each cell is either an axis-aligned cube or a sphere. A periodic cubic simulation
