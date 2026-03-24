@@ -302,6 +302,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
 
   for (isub in seq(nsubvolumes)) {
 
+
     # initialise HDF5 files
     file.snapshot = hdf5r::H5File$new(fn.snapshot.list[isub], mode = "r")
     if (method=='halos') file.membership = hdf5r::H5File$new(fn.membership.list[isub], mode = "r")
@@ -340,7 +341,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
           ptr = current.pointer[,field]
           dt = data.table(j = match[, 2L])               # take the 2nd column once
           dt[, index := ptr[j] + seq_len(.N) - 1L, by = j]   # take-and-increment per group
-          index = dt$index                                  # same length as nrow(match)
+          index = dt$index                                 # same length as nrow(match)
           current.pointer[,field] = ptr+tabulate(dt$j, nbins=length(ptr))  # advance pointers
           rm(dt)
 
@@ -395,6 +396,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
           if (icol!=length(particles[[field]]$colnames)) stop('column number mismatch')
 
         }
+
       }
     }
 
