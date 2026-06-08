@@ -76,7 +76,11 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
     # determine particle indices
     ipart = halos[[sprintf('ipart.%d',s)]][row]
     npart = sum(halos[[sprintf('npart.%d',s)]][allrows])
-    sel = ifelse(npart==0, integer(0), seq(ipart,ipart+npart-1))
+    if (npart==0) {
+      sel = interger(0)
+    } else {
+      seq(ipart,ipart+npart-1)
+    }
     npart.tot = npart.tot+npart
 
     # determine properties to be extracted
