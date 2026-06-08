@@ -52,11 +52,11 @@
 #' show.full.box = TRUE
 #' show.halo = TRUE
 #'
-#' # set global paths (customize these as desired)
-#' setPath('examples',path.expand("~/Data/SwiftExamples/"))
-#' setPath('tmp',path.expand("~/Data/SwiftTmp/"))
+#' # set global paths (customise these as desired)
+#' setPath('examples',path.expand("~/Data/SwiftExamples/")) # directory for example simulation data
+#' setPath('tmp',path.expand("~/Data/SwiftTmp/")) # directory for temporary data files
 #'
-#' # optionally download data
+#' # download example data from COLIBRE simulation (if not already downloaded)
 #' downloadExamples()
 #'
 #' # set paths to specific simulation snapshot
@@ -68,11 +68,11 @@
 #' # load latest local post-processed data for the paths given above
 #' loadSwiftData()
 #'
-#' # load initialize data
+#' # initialize data
 #' if (isSwiftStage(0)) {
-#'   clearSwift() # delete existing data in swift environment, if any
-#'   initialiseSwift() # initialise simulation
-#'   saveSwiftData() # save environment
+#'   clearSwift() # delete existing data in local swift environment, if any
+#'   initialiseSwift() # load simulation metadata into local swift environment
+#'   saveSwiftData() # save swift environment
 #' }
 #'
 #' # partition simulation box and load all particles
