@@ -13,7 +13,7 @@
 #' @param isHaloCatalogueIndex Logical flag. If \code{TRUE}, the \code{index} value is taken to be the unique `HaloCatalogueIndex` available in the file `swift$.paths$halos` and locally stored in an identically named column of `swift$halos`.
 #' @param unwrap Logical flag to control whether the objects are unwrapped using periodic boundary conditions. Requires size of simulation box to be specified in `swift$simulation$BoxSize`.
 #' @param properties Vector of character strings specifying the properties to be extracted. If `NULL` all available properties are returned. For vector properties, provide the vector name (e.g. `Coordinates`) without component index (e.g. `Coordinates.1`).
-#' @param substructure Logical flag for including substructure. If \code{TRUE} and if the requested index refers to a central subhalo, partlcies from its satellite subhalos are included.
+#' @param substructure Logical flag for including substructure. If \code{TRUE} and if the requested index refers to a central subhalo, particles from its satellite subhalos are included.
 #' @param species Integer vector of particle species to include. Recognized values are:
 #' `0` (gas), `1` (dark matter), `4` (stars), and `5` (black holes). If `NULL`, all available species are used.
 #' @param verbose Logical flag to enable timing and progress messages.
@@ -56,7 +56,14 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
     if (is.na(row)) stop("Some HaloCatalogueIndex values not found in swift$halos.")
   } else {
     row = index
-    if (row<1 | row>nrow(halos)) stop(sprintf('row index must between 1 and the number of halos (%d)',nrow(halos)))
+    if (row<1 | row>nrow(halos)) stop(sprintf('row index must be between 1 and the number of halos (%d)',nrow(halos)))
+  }
+
+  # handle substructure
+  if (substructure & halos$HostHaloIndex[row]==0) {
+    allrows = seq(row,row+halos$NumberOfSubhalos[row])
+  } else {
+    allrows = row
   }
 
   x = list()
@@ -66,20 +73,13 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
 
     field = sprintf('PartType%d',s)
 
-    # handle substructure
-    if (substructure & halos$HostHaloIndex[row]==0) {
-      allrows = seq(row,row+halos$NumberOfSubhalos[row])
-    } else {
-      allrows = row
-    }
-
     # determine particle indices
     ipart = halos[[sprintf('ipart.%d',s)]][row]
     npart = sum(halos[[sprintf('npart.%d',s)]][allrows])
     if (npart==0) {
-      sel = interger(0)
+      sel = integer(0)
     } else {
-      seq(ipart,ipart+npart-1)
+      sel = seq(ipart,ipart+npart-1)
     }
     npart.tot = npart.tot+npart
 
@@ -112,7 +112,7 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
     }
 
     # Unwrap coordinates
-    if (unwrap && 'Coordinates'%in%prop) {
+    if (unwrap && 'Coordinates'%in%prop && nrow(x[[field]]$Coordinates)>0) {
       for (d in seq(3)) {
         wrapped[d] = wrapped[d] | diff(range(x[[field]]$Coordinates[,d]))>BoxSize[d]/2
       }
@@ -133,7 +133,7 @@ fetchHalo = function(index, isHaloCatalogueIndex=FALSE, unwrap=TRUE, properties=
     }
   }
 
-  # Add halo dat of selected subhalos
+  # Add halo data of selected subhalos
   x$halos = halos[allrows,]
 
   # also wrap coordinates in halo data

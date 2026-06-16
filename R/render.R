@@ -155,6 +155,7 @@ render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL
   } else {
     types = sort(unique(types[types%in%all.types]))
   }
+  if (length(types)<1) stop('no particle species to display')
 
   # handle fov
   if (!is.null(fov)) {
@@ -188,6 +189,7 @@ render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL
     } else {
       snapshot[[field]]$valrange = c(0,1)
     }
+    if (diff(snapshot[[field]]$valrange)==0) snapshot[[field]]$valrange=snapshot[[field]]$valrange+c(-1,1)
     out[[field]]$valrange = snapshot[[field]]$valrange
 
     # determine particle color
@@ -448,7 +450,7 @@ render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL
     layer = layer+1
 
     # convert density to brightness
-    filling.factor = sum(out[[field]]$density>mean(out[[field]]$density)*0.1)/npixels^2
+    filling.factor = sum(out[[field]]$density>mean(out[[field]]$density)*0.1)/(nx*ny)
     if (is.null(snapshot[[field]]$ref.density)) {
       linear.scaling = filling.factor/mean.density
     } else {
@@ -486,6 +488,9 @@ render = function(snapshot, center=NULL, rotation=1, rot.center=NULL, width=NULL
 
   # combine layers
   if (layer!=nlayers) stop('wrong number of layers')
+
+  # fix layers
+  img4 = cooltools::lim(img4,na=0)
 
   # sum color layers
   img = array(0,dim=c(nx,ny,3))

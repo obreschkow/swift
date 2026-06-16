@@ -23,7 +23,7 @@ fetchHalo(
 
 \item{properties}{Vector of character strings specifying the properties to be extracted. If `NULL` all available properties are returned. For vector properties, provide the vector name (e.g. `Coordinates`) without component index (e.g. `Coordinates.1`).}
 
-\item{substructure}{Logical flag for including substructure. If \code{TRUE} and if the requested index refers to a central subhalo, partlcies from its satellite subhalos are included.}
+\item{substructure}{Logical flag for including substructure. If \code{TRUE} and if the requested index refers to a central subhalo, particles from its satellite subhalos are included.}
 
 \item{species}{Integer vector of particle species to include. Recognized values are:
 `0` (gas), `1` (dark matter), `4` (stars), and `5` (black holes). If `NULL`, all available species are used.}
