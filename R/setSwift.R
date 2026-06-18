@@ -31,24 +31,27 @@ setSwift <- function(name, value) {
     stop("Invalid 'name': empty components in hierarchical path.")
   }
 
-  # start from root
-  if (is.null(.internal_storage)) .internal_storage <<- list()
-
-  ref <- .internal_storage
-
-  # walk / build tree
-  for (i in seq_len(length(parts) - 1)) {
-    if (is.null(ref[[parts[i]]])) {
-      ref[[parts[i]]] <- list()
-    }
-    ref <- ref[[parts[i]]]
+  # make sure global storage exists and is an environment
+  if (is.null(.internal_storage)) {
+    .internal_storage <<- new.env(parent = emptyenv())
   }
 
-  # assign final value
-  ref[[parts[length(parts)]]] <- value
+  env <- .internal_storage
 
-  # IMPORTANT: write back into global storage
-  assign(".internal_storage", .internal_storage, envir = .GlobalEnv)
+  # walk / create nested environments
+  for (i in seq_len(length(parts) - 1)) {
+
+    if (!exists(parts[i], envir = env, inherits = FALSE) ||
+        !is.environment(get(parts[i], envir = env))) {
+
+      assign(parts[i], new.env(parent = emptyenv()), envir = env)
+    }
+
+    env <- get(parts[i], envir = env)
+  }
+
+  # final assignment
+  assign(parts[length(parts)], value, envir = env)
 
   invisible(NULL)
 }
