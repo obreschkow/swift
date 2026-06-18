@@ -16,12 +16,14 @@ None. The value is stored in `swift[[name]]`.
 }
 \description{
 Stores a value in the global `swift` object under a specified name.
-This function is used primarily to write values into the protected (read-only)
-fields of swift, such as `swift$.paths`, `swift$halos`, `swift$particles`, `swfit$simulation`.
+This function is used to write values into the protected (read-only) fields of swift,
+such as `swift$backup`, `swift$cells`, `swift$halos`, `swift$particles`, `swfit$simulation`, `swift$.paths`.
 }
 \examples{
-setSwift("newField", diag(3))
 setSwift("simulation$BoxSize", 100)
+# but use normal access to write into non-protexted fields
+swift$newField <- list(text='abc', value=123)
+swift$newField$extra <- diag(3)
 
 }
 \seealso{

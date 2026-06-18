@@ -3,8 +3,8 @@
 #' @importFrom utils modifyList
 #'
 #' @description Stores a value in the global `swift` object under a specified name.
-#' This function is used primarily to write values into the protected (read-only)
-#' fields of swift, such as `swift$.paths`, `swift$halos`, `swift$particles`, `swfit$simulation`.
+#' This function is used to write values into the protected (read-only) fields of swift,
+#' such as `swift$backup`, `swift$cells`, `swift$halos`, `swift$particles`, `swfit$simulation`, `swift$.paths`.
 #'
 #' @param name A character string specifying the name/key to be written. Sub-lists can be specified using the `$` symbol.
 #' @param value The value to store under `swift[[name]]`. Can be a path, object, or structure depending on context.
@@ -14,44 +14,49 @@
 #' @seealso \link{setPath}
 #'
 #' @examples
-#' setSwift("newField", diag(3))
 #' setSwift("simulation$BoxSize", 100)
+#' # but use normal access to write into non-protexted fields
+#' swift$newField <- list(text='abc', value=123)
+#' swift$newField$extra <- diag(3)
 #'
 #' @export
 #'
 setSwift <- function(name, value) {
-
   if (!is.character(name) || length(name) != 1 || name == "") {
     stop("Argument 'name' must be a non-empty character string of length 1.")
   }
 
   parts <- strsplit(name, "\\$")[[1]]
+  n <- length(parts)
 
   if (any(parts == "")) {
     stop("Invalid 'name': empty components in hierarchical path.")
   }
 
-  # make sure global storage exists and is an environment
-  if (is.null(.internal_storage)) {
-    .internal_storage <<- new.env(parent = emptyenv())
-  }
+  if (n == 1) {
+    .internal_storage[[parts[1]]] <- value
+  } else {
+    # Create intermediate structure if it doesn't exist
+    x <- .internal_storage[[parts[1]]]
+    if (is.null(x)) x <- list()
 
-  env <- .internal_storage
-
-  # walk / create nested environments
-  for (i in seq_len(length(parts) - 1)) {
-
-    if (!exists(parts[i], envir = env, inherits = FALSE) ||
-        !is.environment(get(parts[i], envir = env))) {
-
-      assign(parts[i], new.env(parent = emptyenv()), envir = env)
+    ref <- x
+    for (i in seq_len(n - 2)) {
+      if (is.null(ref[[parts[i + 1]]])) ref[[parts[i + 1]]] <- list()
+      ref <- ref[[parts[i + 1]]]
     }
 
-    env <- get(parts[i], envir = env)
-  }
+    # Set the final value
+    ref[[parts[n]]] <- value
 
-  # final assignment
-  assign(parts[length(parts)], value, envir = env)
+    # Reconstruct the nested structure back up
+    for (i in rev(seq_len(n - 1))) {
+      value <- list(value)
+      names(value) <- parts[i + 1]
+    }
+
+    .internal_storage[[parts[1]]] <- utils::modifyList(x, value)
+  }
 
   invisible(NULL)
 }
