@@ -20,6 +20,7 @@ This function is used primarily to write values into the protected (read-only)
 fields of swift, such as `swift$.paths`, `swift$halos`, `swift$particles`, `swfit$simulation`.
 }
 \examples{
+setSwift("newField", diag(3))
 setSwift("simulation$BoxSize", 100)
 
 }

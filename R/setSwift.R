@@ -14,46 +14,41 @@
 #' @seealso \link{setPath}
 #'
 #' @examples
+#' setSwift("newField", diag(3))
 #' setSwift("simulation$BoxSize", 100)
 #'
 #' @export
 #'
 setSwift <- function(name, value) {
+
   if (!is.character(name) || length(name) != 1 || name == "") {
     stop("Argument 'name' must be a non-empty character string of length 1.")
   }
 
   parts <- strsplit(name, "\\$")[[1]]
-  n <- length(parts)
 
   if (any(parts == "")) {
     stop("Invalid 'name': empty components in hierarchical path.")
   }
 
-  if (n == 1) {
-    .internal_storage[[parts[1]]] <- value
-  } else {
-    # Create intermediate structure if it doesn't exist
-    x <- .internal_storage[[parts[1]]]
-    if (is.null(x)) x <- list()
+  # start from root
+  if (is.null(.internal_storage)) .internal_storage <<- list()
 
-    ref <- x
-    for (i in seq_len(n - 2)) {
-      if (is.null(ref[[parts[i + 1]]])) ref[[parts[i + 1]]] <- list()
-      ref <- ref[[parts[i + 1]]]
+  ref <- .internal_storage
+
+  # walk / build tree
+  for (i in seq_len(length(parts) - 1)) {
+    if (is.null(ref[[parts[i]]])) {
+      ref[[parts[i]]] <- list()
     }
-
-    # Set the final value
-    ref[[parts[n]]] <- value
-
-    # Reconstruct the nested structure back up
-    for (i in rev(seq_len(n - 1))) {
-      value <- list(value)
-      names(value) <- parts[i + 1]
-    }
-
-    .internal_storage[[parts[1]]] <- utils::modifyList(x, value)
+    ref <- ref[[parts[i]]]
   }
+
+  # assign final value
+  ref[[parts[length(parts)]]] <- value
+
+  # IMPORTANT: write back into global storage
+  assign(".internal_storage", .internal_storage, envir = .GlobalEnv)
 
   invisible(NULL)
 }
