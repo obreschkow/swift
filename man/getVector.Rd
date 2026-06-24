@@ -9,7 +9,7 @@ getVector(x, name, ignore.case = TRUE, keep.colnames = FALSE)
 \arguments{
 \item{x}{object containing table-like data, such as a data.frames, data.table, matrix, big.matrix, etc.}
 
-\item{name}{A character string used as a pattern to match column names.}
+\item{name}{A character string used as a pattern to match column names \code{"[name].[number]"}.}
 
 \item{ignore.case}{Logical flag indicating whether the match should ignore case. Defaults to \code{TRUE}.}
 

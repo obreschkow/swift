@@ -1,7 +1,7 @@
 Package: swift
 Type: Package
 Title: Handle Astrophysical Simulation Data from SWIFT/SOAP
-Version: 0.18
+Version: 0.19
 Authors@R: 
     c(person(given = "Danail",
              family = "Obreschkow",

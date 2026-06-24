@@ -353,6 +353,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
             group = paste(field,property,sep='/')
 
             if (particles[[field]]$ncolprop[iprop]==1) {
+
               icol = icol+1
               if (property=='Rank_bound') {
                 if (fselected<.spareReadThreshold) {
@@ -370,7 +371,9 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
               iprogress = iprogress+nrow(match)
               if (verbose) cooltools::progress(sprintf('%.2f%%',iprogress/nprogress*100))
               particles[[field]]$data[index,icol] = .simplify(x)[match[,1]]
+
             } else {
+
               # NOTE: In this case, the code does not use fselected to distinguish between
               # a partial reading mode (x = file.snapshot[[group]][,sel,drop=FALSE])
               # and the full reading mode, as the former can get stuck for large vectors.
@@ -379,16 +382,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
                 icol = icol+1
                 iprogress = iprogress+nrow(match)
                 if (verbose) cooltools::progress(sprintf('%.2f%%',iprogress/nprogress*100))
-                out <<- list()
-                out$x <<- x
-                out$d <<- d
-                out$match <<- match
-                out$field <<- field
-                out$index <<- index
-                out$icol <<- icol
-                out$check <<- 23
                 particles[[field]]$data[index,icol] = x[d,match[,1]]
-                out$check <<- 17
               }
             }
           }

@@ -3,7 +3,7 @@
 #' @description Reunites vector-components in table columns into a simple matrix
 #'
 #' @param x object containing table-like data, such as a data.frames, data.table, matrix, big.matrix, etc.
-#' @param name A character string used as a pattern to match column names.
+#' @param name A character string used as a pattern to match column names \code{"[name].[number]"}.
 #' @param ignore.case Logical flag indicating whether the match should ignore case. Defaults to \code{TRUE}.
 #' @param keep.colnames Logical flag indicating whether to return the result with column names.
 #'
@@ -43,18 +43,24 @@ getVector = function(x, name, ignore.case=TRUE, keep.colnames=FALSE) {
   if (is.null(names)) names = names(x)
   if (is.null(names)) stop('colnames of x cannot be found')
 
-  # find matching columns
-  matches = which(grepl(name, names, ignore.case = ignore.case))
-  if (length(matches)==0) stop('no column names contain the specified name')
+  # escape regex metacharacters in name
+  name_esc = gsub("([][{}()+*^$|\\\\?.])", "\\\\\\1", name)
+
+  # find matching columns of the form [name].[number]
+  pattern = paste0("^", name_esc, "\\.[0-9]+$")
+  matches = which(grepl(pattern, names, ignore.case = ignore.case))
+
+  if (length(matches)==0)
+    stop('no column names match the pattern "[name].[number]"')
 
   # convert to matrix
   if (is.list(x)) {
-    x = matrix(unlist(x,use.names=FALSE),ncol=length(x))[,matches,drop=FALSE]
+    x = matrix(unlist(x, use.names=FALSE), ncol=length(x))[, matches, drop=FALSE]
     if (keep.colnames) colnames(x) = names[matches]
   } else {
-    if (!is.matrix(x)) x=matrix(x,nrow=1)
-    x = x[,matches,drop=FALSE]
-    if (!keep.colnames) colnames(x)=NULL
+    if (!is.matrix(x)) x = matrix(x, nrow=1)
+    x = x[, matches, drop=FALSE]
+    if (!keep.colnames) colnames(x) = NULL
   }
 
   return(x)
