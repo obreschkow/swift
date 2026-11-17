@@ -28,43 +28,56 @@ export(setSwift)
 export(sortHaloList)
 export(swift)
 export(swiftFileName)
+export(swiftMemory)
 export(transformationCols)
 importFrom(Rcpp,evalCpp)
-importFrom(bigmemory,attach.big.matrix)
-importFrom(bigmemory,big.matrix)
-importFrom(cooltools,.cooltools.env)
-importFrom(cooltools,griddata)
-importFrom(cooltools,kde2)
-importFrom(cooltools,lightness)
-importFrom(cooltools,lim)
-importFrom(cooltools,nplot)
-importFrom(cooltools,progress)
-importFrom(cooltools,quadrupole)
-importFrom(cooltools,rasterflip)
-importFrom(cooltools,readhdf5)
-importFrom(cooltools,rotation3)
-importFrom(cooltools,tick)
-importFrom(cooltools,tock)
-importFrom(cooltools,vectornorm)
-importFrom(data.table,":=")
-importFrom(data.table,.N)
-importFrom(data.table,data.table)
-importFrom(data.table,shift)
+importFrom(bigmemory,
+  attach.big.matrix,
+  big.matrix
+)
+importFrom(cooltools,
+  .cooltools.env,
+  griddata,
+  kde2,
+  lightness,
+  lim,
+  nplot,
+  progress,
+  quadrupole,
+  rasterflip,
+  readhdf5,
+  rotation3,
+  tick,
+  tock,
+  vectornorm
+)
+importFrom(data.table,
+  ":=",
+  .N,
+  data.table,
+  shift
+)
 importFrom(digest,digest)
-importFrom(grDevices,col2rgb)
-importFrom(grDevices,dev.off)
-importFrom(grDevices,pdf)
-importFrom(grDevices,rainbow)
-importFrom(graphics,arrows)
-importFrom(graphics,axis)
-importFrom(graphics,lines)
-importFrom(graphics,par)
-importFrom(graphics,rasterImage)
-importFrom(graphics,rect)
-importFrom(graphics,text)
+importFrom(grDevices,
+  col2rgb,
+  dev.off,
+  pdf,
+  rainbow
+)
+importFrom(graphics,
+  arrows,
+  axis,
+  lines,
+  par,
+  rasterImage,
+  rect,
+  text
+)
 importFrom(hdf5r,H5File)
 importFrom(png,writePNG)
 importFrom(stats,ave)
-importFrom(utils,modifyList)
-importFrom(utils,tail)
+importFrom(utils,
+  modifyList,
+  tail
+)
 useDynLib(swift, .registration = TRUE)
