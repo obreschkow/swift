@@ -78,7 +78,7 @@ if (isSwiftStage(1)) {
 
 # plot full simulation box
 if (show.full.box) {
-  x = fetchCell(1:512, unwrap=F,verbose=T)
+  x = fetchCell(1:512, unwrap=FALSE,verbose=TRUE)
   par(mar=rep(0.1,4))
   render(x, npixels=400,center=6.25,width=12.5,gamma=.7)
 }

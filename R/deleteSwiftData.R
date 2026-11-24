@@ -24,7 +24,10 @@ deleteSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
   # find all matching temporary files
   pattern = paste0(filename,'.*.img')
   files <- Sys.glob(pattern)
-  if (length(files)==0) stop(sprintf('No files found with name: %s.*.img',filename))
+  if (length(files)==0) {
+    if (verbose) cooltools::tock('No files to delete.')
+    return(invisible(NULL))
+  }
 
   # extract vector of existing stage indices
   matches <- regmatches(files, regexec("\\.([0-9]+)\\.img$", files))
@@ -44,39 +47,28 @@ deleteSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
 
   for (i in stages) {
 
-    fn = files[i]
+    # 'i' is a stage number, not a position in Sys.glob()'s result.
+    fn = files[match(i,integers)]
 
-    # remove particles files, if produced after this stage
-    tmp_env <- new.env()
-    load(fn, envir = tmp_env)
-    if (!is.null(tmp_env$particles)) {
-      all_containers = names(tmp_env$particles)
-      if (length(all_containers)>0) {
-        if (!all(all_containers%in%c('halos','cells'))) stop('cannot yet deal with containers other than "halos" and "cells"')
-        for (container in all_containers) {
-          if (!is.null(tmp_env$particles[[container]])) {
-            if (!is.null(tmp_env$particles[[container]]$addedAfterStage)) {
-              ienv = tmp_env$particles[[container]]$addedAfterStage+1
-              if (ienv==i) {
-                all_names = names(tmp_env$particles[[container]])
-                if (length(all_names)>0) {
-                  valid = grepl("^PartType\\d+$", all_names)
-                  if (any(valid)) {
-                    directory = paste0(swift$.paths$tmp,'particledata/')
-                    species_names = all_names[valid]
-                    for (field in species_names) {
-                      for (extension in c('.txt','.bin')) {
-                        fnpart = paste0(directory,tmp_env$particles[[container]][[field]]$filename,extension)
-                        if (file.exists(fnpart)) {
-                          file.remove(fnpart)
-                          nfiles = nfiles+1
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
+    # Remove backing files first introduced after the preceding stage.
+    # Both particles and preparticles are stored in the stage image.
+    tmp_env <- new.env(parent=emptyenv())
+    load(fn,envir=tmp_env)
+    for (root in c('particles','preparticles')) {
+      collection = tmp_env[[root]]
+      if (is.null(collection)) next
+      directory = file.path(swift$.paths$tmp,
+                            if (root=='particles') 'particledata' else 'preparticledata')
+      for (container in names(collection)) {
+        block = collection[[container]]
+        if (!is.list(block) || is.null(block$addedAfterStage)) next
+        if (block$addedAfterStage+1L != i) next
+        for (field in grep('^PartType[0-9]+$',names(block),value=TRUE)) {
+          base = block[[field]]$filename
+          if (is.null(base) || !length(base) || is.na(base) || !nzchar(base)) next
+          for (extension in c('.txt','.bin')) {
+            fnpart = file.path(directory,paste0(base,extension))
+            if (file.exists(fnpart) && file.remove(fnpart)) nfiles = nfiles+1L
           }
         }
       }
@@ -87,7 +79,7 @@ deleteSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
     nfiles = nfiles+1
 
     # remove hash file
-    fn.hash <- gsub('.img','.hash',fn)
+    fn.hash <- sub('\\.img$', '.hash', fn)
     if (file.exists(fn.hash)) {
       file.remove(fn.hash)
       nfiles = nfiles+1

@@ -1,4 +1,6 @@
-# Define protected names that should be read-only
+# Define protected names that should be read-only.
+# preparticles is intentionally NOT protected: loadPreParticles() assigns
+# swift$preparticles directly, unlike particles which uses bindSwift().
 .protected_names <- c(".paths", "simulation",  "halos", "cells", "particles", "backup")
 
 # The following parameter is the fraction of items to read from a HDF5 group, below which
@@ -39,6 +41,24 @@ utils::globalVariables(c(
 
 # produces a quasi-unique identifier of an environment
 .hashEnvironment = function(env, exclude=NULL) {
-  contents <- as.list(env, all.names = FALSE)
+  contents <- .swiftSerializable(as.list(env, all.names = FALSE))
   digest::digest(serialize(contents[sort(setdiff(names(contents),exclude))], NULL), algo = "md5")
+}
+
+# Produce a pointer-free copy of the saved state. big.matrix external pointers
+# cannot survive an R session restart; the descriptor files are authoritative.
+# The same representation is used for hashing and disk serialization.
+.swiftSerializable <- function(contents) {
+  for (root in c('particles', 'preparticles')) {
+    if (is.null(contents[[root]])) next
+    for (container in names(contents[[root]])) {
+      block <- contents[[root]][[container]]
+      if (!is.list(block)) next
+      for (field in grep('^PartType[0-9]+$', names(block), value=TRUE)) {
+        if (is.list(block[[field]])) block[[field]]$data <- NULL
+      }
+      contents[[root]][[container]] <- block
+    }
+  }
+  contents
 }

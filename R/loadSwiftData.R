@@ -79,41 +79,49 @@ loadSwiftData <- function(stage=NULL, filename=NULL, verbose=TRUE) {
     fn.img <- paste0(filename,'.',stage,'.img')
     load(fn.img, envir = tmp_env)
 
-    # Copy data into internal storage and (re)bind into swift
-    for (name in ls(tmp_env, all.names = TRUE)) {
+    # Remove serialized external pointers (also handles legacy .img files).
+    # No big.matrix pointer from a prior R session may be reused.
+    restored = .swiftSerializable(as.list(tmp_env, all.names=TRUE))
+
+    # Copy metadata into the appropriate storage, preserving protected bindings.
+    for (name in names(restored)) {
       if (name %in% .protected_names) {
-        .internal_storage[[name]] <- tmp_env[[name]]
+        .internal_storage[[name]] <- restored[[name]]
       } else {
-        swift[[name]] <- tmp_env[[name]]
+        swift[[name]] <- restored[[name]]
       }
     }
 
-    # Reattach bigmemory data
-    if (!is.null(swift$particles)) {
-      all_containers = names(swift$particles)
-      if (length(all_containers)>0) {
-        if (!all(all_containers%in%c('halos','cells'))) stop('cannot yet deal with containers other than "halos" and "cells"')
-        for (container in all_containers) {
-          all_names = names(swift$particles[[container]])
-          if (length(all_names)>0) {
-            valid = grepl("^PartType\\d+$", all_names)
-            if (any(valid)) {
-              directory = paste0(swift$.paths$tmp,'particledata/')
-              species_names = all_names[valid]
-              for (field in species_names) {
-                fn = paste0(directory,swift$particles[[container]][[field]]$filename,".txt")
-                if (!file.exists(fn)) stop(sprintf('cannot find particle data file %s',fn))
-                .internal_storage$particles[[container]][[field]]$data = bigmemory::attach.big.matrix(fn)
-              }
-            }
-          }
+    # Reattach both particle collections using their own backing directories.
+    # particles is protected; preparticles is a regular swift entry.
+    for (root in c('particles', 'preparticles')) {
+      collection = swift[[root]]
+      if (is.null(collection)) next
+      directory = file.path(swift$.paths$tmp,
+                            if (root=='particles') 'particledata' else 'preparticledata')
+      for (container in names(collection)) {
+        block = collection[[container]]
+        if (!is.list(block)) next
+        for (field in grep('^PartType[0-9]+$', names(block), value=TRUE)) {
+          entry = block[[field]]
+          # Some species may have no matrix (e.g. absent current species).
+          if (is.null(entry$filename) || !length(entry$filename) ||
+              is.na(entry$filename) || !nzchar(entry$filename)) next
+          fn = file.path(directory,paste0(entry$filename,'.txt'))
+          if (!file.exists(fn)) stop(sprintf('cannot find %s data file %s',root,fn))
+          collection[[container]][[field]]$data = bigmemory::attach.big.matrix(fn)
         }
       }
+      if (root %in% .protected_names) {
+        .internal_storage[[root]] = collection
+      } else {
+        swift[[root]] = collection
+      }
     }
 
-    backup = list(filename=filename,
-                  stage=stage,
-                  hash=hash_current)
+    # Hash the state we actually loaded, not the state present before loading.
+    hash_loaded = .hashEnvironment(swift,exclude='backup')
+    backup = list(filename=filename,stage=stage,hash=hash_loaded)
 
     if (verbose) cooltools::tock(sprintf('Loaded from R-image (stage %d).',stage))
 

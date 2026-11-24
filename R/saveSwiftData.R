@@ -17,7 +17,9 @@
 #' @param force Logical flag. If TRUE, an R-image is saved even if the data hasn't changed since the last backup.
 #' @param verbose Logical flag to enable timing and progress messages.
 #'
-#' @return None. Writes a `.img` file to disk containing the full `swift` environment, with pointers to linked particle data if available, as well as a `.hash` file containing a unique identifier of the img-file.
+#' @return None. Writes a `.img` file to disk containing the full `swift`
+#' environment, including references to linked particle data if available,
+#' as well as a `.hash` file containing a unique identifier of the saved data.
 #'
 #' @seealso \link{loadSwiftData}, \link{deleteSwiftData}, \link{swiftFileName}
 #'
@@ -54,7 +56,11 @@ saveSwiftData = function(stage=NULL, filename=NULL, verbose=TRUE, force=FALSE) {
                 stage=stage,
                 hash=hash)
 
-  save(list = ls(envir = swift, all.names = FALSE), envir = swift, file = paste0(filename,'.',stage,'.img'), compress = FALSE)
+  # Serialize a pointer-free copy. Keep the live big.matrix objects intact.
+  saved = .swiftSerializable(as.list(swift, all.names=FALSE))
+  snapshot = list2env(saved, parent=emptyenv())
+  save(list=names(saved), envir=snapshot,
+       file=paste0(filename,'.',stage,'.img'), compress=FALSE)
 
   writeLines(hash, paste0(filename,'.',stage,'.hash'))
 
