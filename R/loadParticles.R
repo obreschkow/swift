@@ -16,6 +16,7 @@
 #' @param species Integer vector of particle types to include. Recognized values are: `0` (gas), `1` (dark matter), `2` (background), `3` sink, `4` (stars), `5` (black holes), and `6` (neutrinos). Defaults to all four.
 #' @param properties Character vector of particle properties to load. Defaults to `c("Masses", "Coordinates", "Velocities")`. These properties have to exist in the snapshot files, except for the property `Rank_bound`, which is assumed to exist in the membership file.
 #' @param verbose Logical flag to enable timing and progress messages.
+#' @param cellmargin Optional non-negative numeric scalar specifying the extra distance added to each side of cubic cells (or to the radius of spherical cells), in snapshot coordinate units. NULL is equivalent to zero for method \code{"cells"}, and is required for other methods. The cell geometry in \code{swift$cells} remains unchanged. Cubic selections without a margin use half-open boundaries; positive margins may result in repeated particles across cells.
 #'
 #' @details Particle data is read from multiple subvolume files.\cr
 #'
@@ -42,11 +43,20 @@
 #'
 #' @export
 
-loadParticles = function(method, species=NULL, properties=c('Masses','Coordinates','Velocities'), verbose=TRUE) {
+loadParticles = function(method, species=NULL, properties=c('Masses','Coordinates','Velocities'), verbose=TRUE, cellmargin=NULL) {
 
-  if (verbose) cooltools::tick('Load particles')
+  if (length(method)!=1L || !method%in%c('halos','cells')) stop('method must be "halos" or "cells"')
+  if (verbose) cooltools::tick(sprintf('Load particles in %s',method))
 
   # initialise method
+  if (method=='cells') {
+    if (is.null(cellmargin)) cellmargin = 0
+    if (!is.numeric(cellmargin) || length(cellmargin)!=1L ||
+        !is.finite(cellmargin) || cellmargin<0) stop('cellmargin must be a non-negative finite numeric scalar')
+    cellmargin = as.double(cellmargin)
+  } else if (!is.null(cellmargin)) {
+    stop('cellmargin must be NULL unless method is "cells"')
+  }
   if (method=='halos') {
     if (is.null(swift$halos)) stop('swift$halos table is not available')
     if (nrow(swift$halos)==0) stop('swift$halos is an empty table')
@@ -68,11 +78,32 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
       stop('cells do not contain all of the columnnames "x", "y", "z"')
     }
     if ('radius'%in%colnames(cells)) {
-      cls = cbind(cls,cells[,'radius',drop=FALSE])
+      cls = cbind(cls,radius=ifelse(cells$radius>0,cells$radius+cellmargin,cells$radius))
     } else if ('width'%in%colnames(cells)) {
-      cls = cbind(cls,-cells[,'width',drop=FALSE]) # negative sign to keep track of this being a cubic cell
+      cls = cbind(cls,width=-ifelse(cells$width>0,cells$width+2*cellmargin,cells$width)) # negative sign to keep track of this being a cubic cell
     } else {
       stop('cells do not contain columns "radius" or "width"')
+    }
+
+    # Use the same selection in both the counting and writing passes.
+    # For zero-margin cubes, remove upper faces (except for full-width axes).
+    selectCells = function(pts) {
+      hit = cellIndex(pts,cls,boxsize)
+      if (cellmargin==0 && !('radius'%in%names(cells)) && nrow(hit)>0L) {
+        j = hit[,2L]
+        width = cells$width[j]
+        keep = rep(TRUE,nrow(hit))
+        for (d in seq_len(3L)) {
+          delta = pts[hit[,1L],d]-cls[j,d]
+          if (is.finite(boxsize) && boxsize>0) {
+            delta = delta-boxsize*floor(delta/boxsize+0.5)
+          }
+          fullwidth = is.finite(boxsize) && boxsize>0
+          keep = keep & ((fullwidth & width>=boxsize) | delta<width/2)
+        }
+        hit = hit[keep,,drop=FALSE]
+      }
+      hit
     }
   } else {
     stop('method unknown')
@@ -151,7 +182,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
       for (s in species) {
         pts = t(file.snapshot[[sprintf('PartType%d/Coordinates',s)]]$read())
         if (length(pts)>0) {
-          match = cellIndex(pts,cls,boxsize)
+          match = selectCells(pts)
           counts = tabulate(match[,2],nbins=nrow(cells))
           cells[[sprintf('npart.%d',s)]] = cells[[sprintf('npart.%d',s)]]+counts
         }
@@ -182,12 +213,14 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
 
   # initialize particle container (deletes existing particles in this container)
   particles = list()
+  if (method=='cells') particles$cellmargin = cellmargin
 
   # initialize list holding the particle data
   str = c()
   for (field in c('simulation',method)) {
     if (!is.null(swift[[field]])) str = c(str,digest::digest(swift[[field]], algo='md5'))
   }
+  if (method=='cells') str = c(str,digest::digest(cellmargin,algo='md5'))
   str = digest::digest(str, algo='md5')
   for (s in species) {
     field = sprintf('PartType%d',s)
@@ -323,7 +356,7 @@ loadParticles = function(method, species=NULL, properties=c('Masses','Coordinate
         } else if (method=='cells') {
           pts = t(file.snapshot[[paste0(field,'/Coordinates')]]$read())
           if (length(pts)>0) {
-            match = cellIndex(pts,cls,boxsize)
+            match = selectCells(pts)
             sel = sort(unique(match[,1]))
             match[,1] = match(match[,1],sel)
             fselected = length(sel)/nrow(pts) # fraction of selected particles

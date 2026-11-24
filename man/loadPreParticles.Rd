@@ -9,7 +9,8 @@ loadPreParticles(
   method,
   species = NULL,
   properties = c("Masses", "Coordinates", "Velocities"),
-  verbose = TRUE
+  verbose = TRUE,
+  cellmargin = NULL
 )
 }
 \arguments{
@@ -28,6 +29,12 @@ from the other snapshot. Defaults to `c("Masses", "Coordinates",
 "Velocities")`. ParticleIDs are always included. Properties absent for a given species are ignored.}
 
 \item{verbose}{Logical flag to enable timing and progress messages.}
+
+\item{cellmargin}{NULL for global ID matching (default), or a non-negative
+finite numeric scalar for cell-restricted matching in snapshot coordinate units.
+Only available for method `cells`. Previous cells are enlarged by this
+distance on every side (or in radius). Unmatched particles remain NA.
+Current cell geometry and particle pointers must remain unchanged since loading.}
 }
 \value{
 Invisibly returns `NULL`. The loaded properties are stored in

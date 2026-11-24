@@ -8,7 +8,8 @@ loadParticles(
   method,
   species = NULL,
   properties = c("Masses", "Coordinates", "Velocities"),
-  verbose = TRUE
+  verbose = TRUE,
+  cellmargin = NULL
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ loadParticles(
 \item{properties}{Character vector of particle properties to load. Defaults to `c("Masses", "Coordinates", "Velocities")`. These properties have to exist in the snapshot files, except for the property `Rank_bound`, which is assumed to exist in the membership file.}
 
 \item{verbose}{Logical flag to enable timing and progress messages.}
+
+\item{cellmargin}{Optional non-negative numeric scalar specifying the extra distance added to each side of cubic cells (or to the radius of spherical cells), in snapshot coordinate units. NULL is equivalent to zero for method \code{"cells"}, and is required for other methods. The cell geometry in \code{swift$cells} remains unchanged. Cubic selections without a margin use half-open boundaries; positive margins may result in repeated particles across cells.}
 }
 \value{
 None. The loaded particle data is stored in the `swift$particles` list. Pointers to the particle data are added as new columns to `swift$halos` or `swift$cells` (see details).
